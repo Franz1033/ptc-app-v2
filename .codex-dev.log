@@ -1,0 +1,23 @@
+
+> ptc-app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.100.104:3001
+✓ Ready in 1696ms
+Creating turbopack project { dir: 'C:\\Users\\Admin\\Desktop\\ptc-app', testMode: true }
+
+○ Compiling /marketplace ...
+ GET /inbox 200 in 17.6s (next.js: 14.5s, application-code: 3.1s)
+ GET / 200 in 17.8s (next.js: 16.1s, application-code: 1705ms)
+ GET /marketplace 200 in 17.9s (next.js: 15.0s, application-code: 2.9s)
+ HEAD / 200 in 356ms (next.js: 9ms, application-code: 347ms)
+ HEAD /marketplace 200 in 644ms (next.js: 9ms, application-code: 635ms)
+ HEAD /profile 200 in 1501ms (next.js: 1365ms, application-code: 137ms)
+ GET / 200 in 286ms (next.js: 6ms, application-code: 279ms)
+ GET /marketplace 200 in 677ms (next.js: 8ms, application-code: 669ms)
+ GET /profile 200 in 251ms (next.js: 9ms, application-code: 242ms)
+ GET /inbox 200 in 197ms (next.js: 7ms, application-code: 189ms)
+ GET /create-listing 200 in 1382ms (next.js: 1123ms, application-code: 259ms)
+ GET /listing/van-gogh-pikachu-sealed-pair 200 in 5.3s (next.js: 3.8s, generate-params: 2.1s, application-code: 1488ms)

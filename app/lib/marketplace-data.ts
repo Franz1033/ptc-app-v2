@@ -1,0 +1,558 @@
+export type ListingCategory = "pokemon" | "sports" | "tcg" | "graded" | "lots";
+
+export type CityFilter =
+  | "all"
+  | "new-york"
+  | "chicago"
+  | "austin"
+  | "los-angeles"
+  | "jersey-city";
+
+export type SortFilter = "fresh" | "price-low" | "price-high" | "trade-value";
+
+export type DealFilter =
+  | "all"
+  | "trade-friendly"
+  | "meetup-only"
+  | "under-250";
+
+export type DealType = "buy-only" | "buy-trade" | "trade-only";
+
+export type SellerProfile = {
+  name: string;
+  badge: string;
+  responseTime: string;
+  sales: number;
+  rating: string;
+  memberSince: string;
+  collectorFocus: string;
+};
+
+export type Listing = {
+  slug: string;
+  title: string;
+  subtitle: string;
+  franchise: string;
+  set: string;
+  cardNumber: string;
+  price: number;
+  tradeValue: number;
+  location: string;
+  city: Exclude<CityFilter, "all">;
+  distance: string;
+  condition: string;
+  grade?: string;
+  rarity: string;
+  shipping: string;
+  meetupSpot: string;
+  posted: string;
+  postedRank: number;
+  description: string;
+  categories: ListingCategory[];
+  dealType: DealType;
+  accent: string;
+  secondary: string;
+  surface: string;
+  tags: string[];
+  wants: string[];
+  seller: SellerProfile;
+};
+
+export const categoryFilters: Array<{
+  slug: "all" | ListingCategory;
+  label: string;
+  countLabel: string;
+}> = [
+  { slug: "all", label: "All cards", countLabel: "Fresh local drops" },
+  { slug: "pokemon", label: "Pokemon", countLabel: "Modern hits and promos" },
+  { slug: "sports", label: "Sports", countLabel: "Rookies, autos, slabs" },
+  { slug: "tcg", label: "TCG", countLabel: "One Piece, Lorcana, Yu-Gi-Oh!" },
+  { slug: "graded", label: "Graded", countLabel: "PSA, BGS, SGC" },
+  { slug: "lots", label: "Lots", countLabel: "Binders and starter stacks" },
+];
+
+export const cityFilters: Array<{
+  slug: CityFilter;
+  label: string;
+}> = [
+  { slug: "all", label: "Any city" },
+  { slug: "new-york", label: "New York" },
+  { slug: "jersey-city", label: "Jersey City" },
+  { slug: "chicago", label: "Chicago" },
+  { slug: "austin", label: "Austin" },
+  { slug: "los-angeles", label: "Los Angeles" },
+];
+
+export const sortFilters: Array<{
+  slug: SortFilter;
+  label: string;
+}> = [
+  { slug: "fresh", label: "Fresh first" },
+  { slug: "price-low", label: "Lowest price" },
+  { slug: "price-high", label: "Highest price" },
+  { slug: "trade-value", label: "Best trade value" },
+];
+
+export const dealFilters: Array<{
+  slug: DealFilter;
+  label: string;
+  description: string;
+}> = [
+  { slug: "all", label: "All deals", description: "Cash sales and swaps" },
+  {
+    slug: "trade-friendly",
+    label: "Trade friendly",
+    description: "Open to swaps plus cash",
+  },
+  {
+    slug: "meetup-only",
+    label: "Meetup only",
+    description: "Built for same-day public meetups",
+  },
+  {
+    slug: "under-250",
+    label: "Under $250",
+    description: "Quick pickups and binder upgrades",
+  },
+];
+
+export const marketplaceStats = [
+  { label: "Active local listings", value: "148" },
+  { label: "Average seller reply", value: "11 min" },
+  { label: "Community meetup zones", value: "23" },
+  { label: "Auction countdowns", value: "0" },
+] as const;
+
+export const marketplacePrinciples = [
+  {
+    title: "Direct chat, then meetup",
+    copy: "Message first, then confirm a public meetup.",
+  },
+  {
+    title: "Fixed prices and trade values",
+    copy: "Each listing can show a cash price, a trade value, or both.",
+  },
+  {
+    title: "Collectors, not storefronts",
+    copy: "Profiles focus on response time, deal history, and trade interests.",
+  },
+] as const;
+
+export const featuredCollections = [
+  {
+    name: "Binder refresh under $75",
+    summary: "Raw singles and clean promos for quick upgrades after league night.",
+    accent: "#60a5fa",
+  },
+  {
+    name: "Trade night heat check",
+    summary: "High-interest slabs priced to move in person before the weekend card show.",
+    accent: "#f97316",
+  },
+  {
+    name: "Starter lots for new collectors",
+    summary: "Team bags, partial sets, and starter stacks sold as community-friendly bundles.",
+    accent: "#34d399",
+  },
+] as const;
+
+export const trustedMeetupSpots = [
+  {
+    name: "Bleecker Street Card Loft",
+    city: "New York",
+    note: "Well-lit tables and easy parking nearby.",
+  },
+  {
+    name: "Hudson Hobby Exchange",
+    city: "Jersey City",
+    note: "Front counter check-in and cameras.",
+  },
+  {
+    name: "North Loop Card Club",
+    city: "Austin",
+    note: "Common spot for same-day pickups.",
+  },
+] as const;
+
+export const sellingSteps = [
+  "Upload clear front and back photos.",
+  "Set a price, trade value, and meetup area.",
+  "Reply in chat and confirm a public meetup.",
+] as const;
+
+export const inboxPreview = [
+  {
+    buyer: "Jordan V.",
+    message: "Can do cash plus a PSA 9 Gengar if you can meet at 7:15.",
+    status: "Seen 2m ago",
+  },
+  {
+    buyer: "Nina S.",
+    message: "Interested in both Wemby cards if you still have the silver holo clean.",
+    status: "New message",
+  },
+  {
+    buyer: "Chris P.",
+    message: "Can meet at the shop counter tomorrow afternoon. Want me to bring comp screenshots?",
+    status: "Replied",
+  },
+] as const;
+
+export const listings: Listing[] = [
+  {
+    slug: "van-gogh-pikachu-sealed-pair",
+    title: "Van Gogh Pikachu sealed pair",
+    subtitle: "Two sealed promos in Card Saver sleeves.",
+    franchise: "Pokemon",
+    set: "Van Gogh Museum Promo",
+    cardNumber: "085",
+    price: 165,
+    tradeValue: 190,
+    location: "Queens, NY",
+    city: "new-york",
+    distance: "4 miles away",
+    condition: "Sealed",
+    rarity: "Promo",
+    shipping: "Meetup or tracked shipping",
+    meetupSpot: "Shops at Skyview card tables",
+    posted: "42 minutes ago",
+    postedRank: 1,
+    description:
+      "Seller wants a quick, straightforward meetup and is open to a clean promo swap plus cash.",
+    categories: ["pokemon"],
+    dealType: "buy-trade",
+    accent: "#f97316",
+    secondary: "#facc15",
+    surface: "#fff1d6",
+    tags: ["Fixed price", "Trade friendly", "Meet tonight"],
+    wants: ["151 illustration rares", "Japanese promos", "cash plus slabs"],
+    seller: {
+      name: "Maya C.",
+      badge: "Top meetup seller",
+      responseTime: "Replies in 9 min",
+      sales: 41,
+      rating: "4.9",
+      memberSince: "2019",
+      collectorFocus: "Modern Pokemon slabs and sealed promos",
+    },
+  },
+  {
+    slug: "michael-jordan-fleer-sticker-psa7",
+    title: "1986 Fleer Jordan sticker PSA 7",
+    subtitle: "Centered well with a clean surface and sharp eye appeal.",
+    franchise: "Sports",
+    set: "1986 Fleer Basketball",
+    cardNumber: "8",
+    price: 950,
+    tradeValue: 1050,
+    location: "Chicago, IL",
+    city: "chicago",
+    distance: "6 miles away",
+    condition: "Graded",
+    grade: "PSA 7",
+    rarity: "Iconic rookie-era insert",
+    shipping: "Meetup preferred",
+    meetupSpot: "Card Vault cafe lounge",
+    posted: "1 hour ago",
+    postedRank: 2,
+    description:
+      "Posted for collectors who want a real conversation, comps in hand, and a public deal table instead of bidding wars.",
+    categories: ["sports", "graded"],
+    dealType: "buy-trade",
+    accent: "#ef4444",
+    secondary: "#312e81",
+    surface: "#fee2e2",
+    tags: ["Comp sheet ready", "Trade up welcome", "No auction"],
+    wants: ["Kobe inserts", "cash plus modern slabs", "vintage Bulls lots"],
+    seller: {
+      name: "Andre T.",
+      badge: "Verified slab seller",
+      responseTime: "Replies in 14 min",
+      sales: 63,
+      rating: "5.0",
+      memberSince: "2017",
+      collectorFocus: "Vintage basketball and crossover slabs",
+    },
+  },
+  {
+    slug: "wembanyama-prizm-silver-rookie-stack",
+    title: "Wemby rookie stack with silver holo",
+    subtitle: "Silver prizm plus two base rookies in a ready-to-trade bundle.",
+    franchise: "Sports",
+    set: "2023 Prizm Basketball",
+    cardNumber: "136",
+    price: 310,
+    tradeValue: 345,
+    location: "Austin, TX",
+    city: "austin",
+    distance: "9 miles away",
+    condition: "Near mint",
+    rarity: "Rookie lot",
+    shipping: "Meetup only",
+    meetupSpot: "North Loop Card Club",
+    posted: "2 hours ago",
+    postedRank: 3,
+    description:
+      "Seller wants one meetup, one inspection, and a fast done deal for collectors tracking Wemby heat locally.",
+    categories: ["sports", "lots"],
+    dealType: "buy-only",
+    accent: "#22c55e",
+    secondary: "#0f172a",
+    surface: "#dcfce7",
+    tags: ["Meetup only", "Bundle price", "Fresh pull"],
+    wants: ["cash only"],
+    seller: {
+      name: "Ty R.",
+      badge: "Fast responder",
+      responseTime: "Replies in 6 min",
+      sales: 28,
+      rating: "4.8",
+      memberSince: "2021",
+      collectorFocus: "NBA rookies and short prints",
+    },
+  },
+  {
+    slug: "caitlin-full-art-psa10",
+    title: "Caitlin full art PSA 10",
+    subtitle: "Pop report saved in chat and slab sleeve included.",
+    franchise: "Pokemon",
+    set: "Matchless Fighters",
+    cardNumber: "080",
+    price: 425,
+    tradeValue: 470,
+    location: "Jersey City, NJ",
+    city: "jersey-city",
+    distance: "2 miles away",
+    condition: "Graded",
+    grade: "PSA 10",
+    rarity: "Full art trainer",
+    shipping: "Meetup or tracked shipping",
+    meetupSpot: "Hudson Hobby Exchange",
+    posted: "3 hours ago",
+    postedRank: 4,
+    description:
+      "Perfect for collectors who want a clean slab, transparent comps, and the option to trade up in person.",
+    categories: ["pokemon", "graded"],
+    dealType: "buy-trade",
+    accent: "#a855f7",
+    secondary: "#ec4899",
+    surface: "#f5d0fe",
+    tags: ["PSA slab", "Trainer collector", "Trade up"],
+    wants: ["Lillie cards", "Japanese trainer slabs", "cash plus promos"],
+    seller: {
+      name: "Sofia L.",
+      badge: "Trusted grader",
+      responseTime: "Replies in 12 min",
+      sales: 54,
+      rating: "4.9",
+      memberSince: "2018",
+      collectorFocus: "Trainer full arts and Japanese slabs",
+    },
+  },
+  {
+    slug: "blue-eyes-sdk-starter-deck-clean",
+    title: "Blue-Eyes SDK starter deck copy",
+    subtitle: "Clean binder-kept copy with close-ups already attached.",
+    franchise: "Yu-Gi-Oh!",
+    set: "Starter Deck Kaiba",
+    cardNumber: "SDK-001",
+    price: 240,
+    tradeValue: 275,
+    location: "Los Angeles, CA",
+    city: "los-angeles",
+    distance: "11 miles away",
+    condition: "Light play",
+    rarity: "Classic holo",
+    shipping: "Meetup preferred",
+    meetupSpot: "Little Tokyo trade tables",
+    posted: "5 hours ago",
+    postedRank: 5,
+    description:
+      "Seller is open to classic-era swaps and wants to keep the transaction friendly, quick, and public.",
+    categories: ["tcg"],
+    dealType: "buy-trade",
+    accent: "#3b82f6",
+    secondary: "#06b6d4",
+    surface: "#dbeafe",
+    tags: ["Classic Yugioh", "Trade friendly", "Closer photos ready"],
+    wants: ["Goat format staples", "sealed structure decks", "cash plus binder cards"],
+    seller: {
+      name: "Kevin M.",
+      badge: "Community regular",
+      responseTime: "Replies in 15 min",
+      sales: 19,
+      rating: "4.7",
+      memberSince: "2020",
+      collectorFocus: "Classic Yu-Gi-Oh! holos and sealed decks",
+    },
+  },
+  {
+    slug: "luffy-op05-alt-art-bgs95",
+    title: "Luffy OP05 alt art BGS 9.5",
+    subtitle: "Strong subgrades with a slab sleeve and recent comps saved.",
+    franchise: "One Piece",
+    set: "Awakening of the New Era",
+    cardNumber: "OP05-119",
+    price: 680,
+    tradeValue: 760,
+    location: "New York, NY",
+    city: "new-york",
+    distance: "3 miles away",
+    condition: "Graded",
+    grade: "BGS 9.5",
+    rarity: "Manga style chase",
+    shipping: "Meetup or tracked shipping",
+    meetupSpot: "Bleecker Street Card Loft",
+    posted: "7 hours ago",
+    postedRank: 6,
+    description:
+      "High-visibility One Piece slab posted for collectors who prefer direct comps and a same-week meetup.",
+    categories: ["tcg", "graded"],
+    dealType: "buy-trade",
+    accent: "#fb7185",
+    secondary: "#7c3aed",
+    surface: "#ffe4e6",
+    tags: ["BGS 9.5", "Alt art", "Serious offers"],
+    wants: ["Enel manga", "cash plus sealed OP boxes", "Pokemon alt arts"],
+    seller: {
+      name: "Luis A.",
+      badge: "Show floor seller",
+      responseTime: "Replies in 8 min",
+      sales: 37,
+      rating: "4.9",
+      memberSince: "2022",
+      collectorFocus: "One Piece grails and sealed booster boxes",
+    },
+  },
+  {
+    slug: "pokemon-151-binder-upgrade-lot",
+    title: "Pokemon 151 binder upgrade lot",
+    subtitle: "Twelve hits with reverse holos and two illustration rares.",
+    franchise: "Pokemon",
+    set: "Scarlet and Violet 151",
+    cardNumber: "Lot of 12",
+    price: 145,
+    tradeValue: 165,
+    location: "Austin, TX",
+    city: "austin",
+    distance: "5 miles away",
+    condition: "Near mint",
+    rarity: "Binder lot",
+    shipping: "Meetup only",
+    meetupSpot: "North Loop Card Club",
+    posted: "Yesterday",
+    postedRank: 7,
+    description:
+      "Great for collectors who want one efficient binder refresh instead of tracking every single card separately.",
+    categories: ["pokemon", "lots"],
+    dealType: "buy-only",
+    accent: "#14b8a6",
+    secondary: "#f59e0b",
+    surface: "#ccfbf1",
+    tags: ["Under $250", "Lot sale", "Great starter pickup"],
+    wants: ["cash only"],
+    seller: {
+      name: "Alex P.",
+      badge: "Weekend seller",
+      responseTime: "Replies in 18 min",
+      sales: 12,
+      rating: "4.8",
+      memberSince: "2023",
+      collectorFocus: "Modern sets and full binder pages",
+    },
+  },
+  {
+    slug: "shohei-ohtani-bowman-rookie-sgc95",
+    title: "Shohei Bowman Chrome rookie SGC 9.5",
+    subtitle: "Clean tuxedo slab with recent card show comps.",
+    franchise: "Sports",
+    set: "2018 Bowman Chrome",
+    cardNumber: "1",
+    price: 520,
+    tradeValue: 590,
+    location: "Los Angeles, CA",
+    city: "los-angeles",
+    distance: "7 miles away",
+    condition: "Graded",
+    grade: "SGC 9.5",
+    rarity: "Rookie",
+    shipping: "Meetup or tracked shipping",
+    meetupSpot: "Pasadena hobby hall",
+    posted: "Yesterday",
+    postedRank: 8,
+    description:
+      "Seller is looking for a low-friction meetup with collectors who want a flagship rookie and transparent pricing.",
+    categories: ["sports", "graded"],
+    dealType: "buy-trade",
+    accent: "#f43f5e",
+    secondary: "#38bdf8",
+    surface: "#ffe4e6",
+    tags: ["Ohtani", "Trade up", "Comp verified"],
+    wants: ["vintage baseball slabs", "cash plus Kobe", "low-pop rookies"],
+    seller: {
+      name: "Derek N.",
+      badge: "Verified comps",
+      responseTime: "Replies in 10 min",
+      sales: 47,
+      rating: "4.9",
+      memberSince: "2018",
+      collectorFocus: "Baseball rookies and crossover slabs",
+    },
+  },
+];
+
+export function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function getListingBySlug(slug: string) {
+  return listings.find((listing) => listing.slug === slug);
+}
+
+export function getRelatedListings(slug: string) {
+  const currentListing = getListingBySlug(slug);
+
+  if (!currentListing) {
+    return [];
+  }
+
+  return listings
+    .filter((listing) => listing.slug !== slug)
+    .sort((left, right) => {
+      const rightMatches = right.categories.filter((category) =>
+        currentListing.categories.includes(category)
+      ).length;
+      const leftMatches = left.categories.filter((category) =>
+        currentListing.categories.includes(category)
+      ).length;
+
+      if (rightMatches !== leftMatches) {
+        return rightMatches - leftMatches;
+      }
+
+      return left.postedRank - right.postedRank;
+    })
+    .slice(0, 3);
+}
+
+export function isCategoryFilter(
+  value: string
+): value is "all" | ListingCategory {
+  return categoryFilters.some((category) => category.slug === value);
+}
+
+export function isCityFilter(value: string): value is CityFilter {
+  return cityFilters.some((city) => city.slug === value);
+}
+
+export function isSortFilter(value: string): value is SortFilter {
+  return sortFilters.some((sort) => sort.slug === value);
+}
+
+export function isDealFilter(value: string): value is DealFilter {
+  return dealFilters.some((deal) => deal.slug === value);
+}
