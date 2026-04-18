@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { instrumentSans } from "@/app/fonts";
+
 type SectionHeadingProps = {
   eyebrow: string;
   title: string;
@@ -19,7 +21,9 @@ export function SectionHeading({
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
           {eyebrow}
         </p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+        <h2
+          className={`${instrumentSans.className} mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl`}
+        >
           {title}
         </h2>
         <p className="mt-3 text-base leading-7 text-slate-500">{description}</p>

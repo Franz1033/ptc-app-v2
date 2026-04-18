@@ -117,24 +117,24 @@ export const dealFilters: Array<{
 ];
 
 export const marketplaceStats = [
-  { label: "Active local listings", value: "148" },
-  { label: "Average seller reply", value: "11 min" },
-  { label: "Community meetup zones", value: "23" },
-  { label: "Auction countdowns", value: "0" },
+  { label: "Active listings", value: "148" },
+  { label: "Active sellers", value: "72" },
+  { label: "Completed deals", value: "1,284" },
+  { label: "New listings this week", value: "41" },
 ] as const;
 
 export const marketplacePrinciples = [
   {
-    title: "Direct chat, then meetup",
-    copy: "Message first, then confirm a public meetup.",
+    title: "Direct chat before the deal",
+    copy: "Message first, then confirm shipping, delivery, pickup, or meetup details.",
   },
   {
     title: "Fixed prices and trade values",
-    copy: "Each listing can show a cash price, a trade value, or both.",
+    copy: "Each listing can show a cash price, a trade value, or both, along with how the deal will be fulfilled.",
   },
   {
     title: "Collectors, not storefronts",
-    copy: "Profiles focus on response time, deal history, and trade interests.",
+    copy: "Profiles focus on response time, deal history, fulfillment preferences, and trade interests.",
   },
 ] as const;
 
@@ -176,8 +176,8 @@ export const trustedMeetupSpots = [
 
 export const sellingSteps = [
   "Upload clear front and back photos.",
-  "Set a price, trade value, and meetup area.",
-  "Reply in chat and confirm a public meetup.",
+  "Set a price, trade value, and shipping or meetup preferences.",
+  "Reply in chat and confirm shipping, delivery, or meetup details.",
 ] as const;
 
 export const inboxPreview = [
@@ -256,13 +256,13 @@ export const listings: Listing[] = [
     posted: "1 hour ago",
     postedRank: 2,
     description:
-      "Posted for collectors who want a real conversation, comps in hand, and a public deal table instead of bidding wars.",
+      "Posted for collectors who want a real conversation, comps in hand, and a public deal table for a straightforward discussion.",
     categories: ["sports", "graded"],
     dealType: "buy-trade",
     accent: "#ef4444",
     secondary: "#312e81",
     surface: "#fee2e2",
-    tags: ["Comp sheet ready", "Trade up welcome", "No auction"],
+    tags: ["Comp sheet ready", "Trade up welcome", "Serious offers"],
     wants: ["Kobe inserts", "cash plus modern slabs", "vintage Bulls lots"],
     seller: {
       name: "Andre T.",

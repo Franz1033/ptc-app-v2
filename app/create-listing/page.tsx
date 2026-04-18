@@ -12,7 +12,7 @@ const formSections = [
   },
   {
     title: "Deal setup",
-    fields: ["Fixed price", "Optional trade target", "Meetup preference"],
+    fields: ["Fixed price", "Optional trade target", "Shipping or meetup preference"],
   },
   {
     title: "Trust signals",
@@ -71,7 +71,7 @@ export default async function CreateListingPage() {
             <SectionHeading
               eyebrow="Posting workflow"
               title="Posting steps"
-              description="A short path from photos to meetup."
+              description="A short path from photos to a live deal."
             />
             <div className="mt-8 grid gap-6 border-t border-slate-200 pt-8 sm:grid-cols-3">
               {sellingSteps.map((step, index) => (

@@ -30,7 +30,7 @@ export function SignOutButton() {
       type="button"
       onClick={handleSignOut}
       disabled={isPending}
-      className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 px-4 text-sm font-medium leading-none text-slate-700 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {isPending ? "Signing out..." : "Sign Out"}
     </button>

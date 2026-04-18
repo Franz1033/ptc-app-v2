@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { instrumentSans } from "@/app/fonts";
 import { CardArt } from "@/app/components/marketplace/card-art";
 import { ListingCard } from "@/app/components/marketplace/listing-card";
 import { SectionHeading } from "@/app/components/marketplace/section-heading";
@@ -130,7 +131,9 @@ export default async function ListingPage({ params }: ListingPageProps) {
               <div className="inline-flex w-fit rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
                 Listing details
               </div>
-              <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+              <h1
+                className={`${instrumentSans.className} mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl`}
+              >
                 {listing.title}
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-500">
@@ -168,13 +171,13 @@ export default async function ListingPage({ params }: ListingPageProps) {
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 type="button"
-                className="rounded-full bg-emerald-700 px-5 py-3 font-medium text-white transition hover:bg-emerald-800"
+                className="rounded-full bg-emerald-800 px-5 py-3 font-medium text-white transition hover:bg-emerald-700"
               >
                 Message seller
               </button>
               <button
                 type="button"
-                className="rounded-full border border-emerald-200 px-5 py-3 font-medium text-emerald-700 transition hover:bg-emerald-50"
+                className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 font-medium text-emerald-800 transition hover:bg-emerald-100"
               >
                 Save listing
               </button>

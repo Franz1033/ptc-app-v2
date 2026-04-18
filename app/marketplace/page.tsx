@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { instrumentSans } from "@/app/fonts";
 import { ListingCard } from "@/app/components/marketplace/listing-card";
 import { SectionHeading } from "@/app/components/marketplace/section-heading";
 import { SiteHeader } from "@/app/components/marketplace/site-header";
@@ -146,7 +147,9 @@ export default async function MarketplacePage({
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
                   Marketplace
                 </p>
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                <h1
+                  className={`${instrumentSans.className} mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl`}
+                >
                   Live listings
                 </h1>
                 <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
@@ -157,13 +160,13 @@ export default async function MarketplacePage({
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="#inventory"
-                  className="rounded-full bg-emerald-700 px-5 py-3 font-medium text-white transition hover:bg-emerald-800"
+                  className="rounded-full bg-emerald-800 px-5 py-3 font-medium text-white transition hover:bg-emerald-700"
                 >
                   Jump to listings
                 </Link>
                 <Link
                   href="/create-listing"
-                  className="rounded-full border border-emerald-200 px-5 py-3 font-medium text-emerald-700 transition hover:bg-emerald-50"
+                  className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 font-medium text-emerald-800 transition hover:bg-emerald-100"
                 >
                   Create listing
                 </Link>
@@ -278,7 +281,7 @@ export default async function MarketplacePage({
                   </select>
                   <button
                     type="submit"
-                    className="h-12 rounded-2xl bg-emerald-700 px-5 font-medium text-white transition hover:bg-emerald-800"
+                    className="h-12 rounded-2xl bg-emerald-800 px-5 font-medium text-white transition hover:bg-emerald-700"
                   >
                     Apply
                   </button>
@@ -290,7 +293,9 @@ export default async function MarketplacePage({
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
                   Inventory
                 </p>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+                <h2
+                  className={`${instrumentSans.className} mt-2 text-3xl font-semibold tracking-tight text-slate-950`}
+                >
                   {visibleListings.length} active listings
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
@@ -302,7 +307,7 @@ export default async function MarketplacePage({
                   href={buildHref({ sort: "fresh" })}
                   className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                     selectedSort === "fresh"
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                       : "border-slate-200 text-slate-600 hover:bg-[#fbfefb] hover:text-slate-950"
                   }`}
                 >
@@ -312,7 +317,7 @@ export default async function MarketplacePage({
                   href={buildHref({ sort: "price-low" })}
                   className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                     selectedSort === "price-low"
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                       : "border-slate-200 text-slate-600 hover:bg-[#fbfefb] hover:text-slate-950"
                   }`}
                 >

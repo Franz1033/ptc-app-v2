@@ -1,0 +1,3 @@
+- To use subdomain for production on Vercel, just generate the 
+  subdomain that you want and then copy the records on GoDaddy
+- For production-ready user uploads, use Amazon S3 for image hosting

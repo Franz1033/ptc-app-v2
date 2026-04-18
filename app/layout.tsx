@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 
+import { geistMono, geistSans, instrumentSans } from "@/app/fonts";
 import { SiteFooter } from "@/app/components/marketplace/site-footer";
 
 import "./globals.css";
-
-const geistSans = localFont({
-  src: "../node_modules/next/dist/next-devtools/server/font/geist-latin.woff2",
-  variable: "--font-geist-sans",
-  display: "swap",
-});
-
-const geistMono = localFont({
-  src: "../node_modules/next/dist/next-devtools/server/font/geist-mono-latin.woff2",
-  variable: "--font-geist-mono",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +11,7 @@ export const metadata: Metadata = {
     template: "%s | Pepe Trading Cards",
   },
   description:
-    "A Facebook Marketplace-style trading card platform for fixed prices, direct offers, and trusted public meetups.",
+    "A Facebook Marketplace-style trading card platform for fixed prices, direct offers, and collector-to-collector deals.",
 };
 
 export default function RootLayout({
@@ -34,7 +22,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
         <div className="flex min-h-screen flex-col">

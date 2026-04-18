@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { instrumentSans } from "@/app/fonts";
 import { SiteHeader } from "@/app/components/marketplace/site-header";
 
 export default function NotFound() {
@@ -11,7 +12,9 @@ export default function NotFound() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
             Listing unavailable
           </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          <h1
+            className={`${instrumentSans.className} mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl`}
+          >
             That card is no longer active.
           </h1>
           <p className="mt-4 text-lg leading-8 text-slate-500">

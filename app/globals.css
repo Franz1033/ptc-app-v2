@@ -7,9 +7,19 @@
   --surface-strong: #fbfefb;
   --muted: #6b7280;
   --line: rgba(15, 23, 42, 0.08);
-  --accent: #15803d;
-  --accent-2: #86efac;
-  --glow: #dcfce7;
+  --accent: #68994e;
+  --accent-2: #d4e2c8;
+  --glow: #e8efe0;
+  --site-header-height: 61px;
+  --brand-50: #f5f8f1;
+  --brand-100: #e8efe0;
+  --brand-200: #d4e2c8;
+  --brand-300: #bbd1a8;
+  --brand-400: #96b57d;
+  --brand-500: #7da362;
+  --brand-600: #6f9954;
+  --brand-700: #68994e;
+  --brand-800: #52773c;
 }
 
 @theme inline {
@@ -22,8 +32,18 @@
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
   --color-glow: var(--glow);
+  --color-emerald-50: var(--brand-50);
+  --color-emerald-100: var(--brand-100);
+  --color-emerald-200: var(--brand-200);
+  --color-emerald-300: var(--brand-300);
+  --color-emerald-400: var(--brand-400);
+  --color-emerald-500: var(--brand-500);
+  --color-emerald-600: var(--brand-600);
+  --color-emerald-700: var(--brand-700);
+  --color-emerald-800: var(--brand-800);
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-display: var(--font-instrument-sans);
 }
 
 * {
@@ -39,28 +59,15 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(22, 163, 74, 0.08), transparent 20%),
+    radial-gradient(circle at 12% 12rem, rgba(104, 153, 78, 0.06), transparent 18%),
     radial-gradient(
-      circle at 100% 0%,
-      rgba(22, 163, 74, 0.04),
-      transparent 18%
+      circle at 88% 14rem,
+      rgba(104, 153, 78, 0.035),
+      transparent 16%
     ),
     linear-gradient(180deg, #ffffff 0%, #fcfefc 100%);
   color: var(--foreground);
   font-family: var(--font-sans);
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(22, 163, 74, 0.03) 0%,
-      rgba(22, 163, 74, 0) 18%
-    );
 }
 
 a {
@@ -75,6 +82,78 @@ button {
 }
 
 ::selection {
-  background: rgba(22, 163, 74, 0.18);
+  background: rgba(104, 153, 78, 0.18);
   color: var(--foreground);
+}
+
+.bg-emerald-50 {
+  background-color: var(--brand-50) !important;
+}
+
+.bg-emerald-100 {
+  background-color: var(--brand-100) !important;
+}
+
+.bg-emerald-700 {
+  background-color: var(--brand-700) !important;
+}
+
+.bg-emerald-800 {
+  background-color: var(--brand-800) !important;
+}
+
+.text-emerald-50 {
+  color: #f9fcf6 !important;
+}
+
+.text-emerald-700 {
+  color: var(--brand-700) !important;
+}
+
+.text-emerald-800 {
+  color: var(--brand-800) !important;
+}
+
+.border-emerald-100 {
+  border-color: var(--brand-100) !important;
+}
+
+.border-emerald-200 {
+  border-color: var(--brand-200) !important;
+}
+
+.focus\:border-emerald-300:focus {
+  border-color: var(--brand-300) !important;
+}
+
+.focus\:border-emerald-400:focus {
+  border-color: var(--brand-400) !important;
+}
+
+.focus\:ring-emerald-100:focus {
+  --tw-ring-color: var(--brand-100) !important;
+}
+
+.hover\:bg-emerald-50:hover {
+  background-color: var(--brand-50) !important;
+}
+
+.hover\:bg-emerald-100:hover {
+  background-color: var(--brand-100) !important;
+}
+
+.hover\:bg-emerald-700:hover {
+  background-color: var(--brand-700) !important;
+}
+
+.hover\:bg-emerald-800:hover {
+  background-color: var(--brand-800) !important;
+}
+
+.hover\:text-emerald-800:hover {
+  color: var(--brand-800) !important;
+}
+
+.bg-emerald-50\/40 {
+  background-color: color-mix(in srgb, var(--brand-50) 40%, transparent) !important;
 }

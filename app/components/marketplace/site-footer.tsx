@@ -32,7 +32,7 @@ export function SiteFooter() {
               <BrandLogo className="h-8 w-auto" />
             </Link>
             <p className="mt-4 text-sm leading-7 text-slate-500">
-              Fixed-price card listings with direct messages and public meetups.
+              Fixed-price card listings with direct messages and a collector-first deal flow.
             </p>
           </div>
 

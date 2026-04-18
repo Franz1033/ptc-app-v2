@@ -5,6 +5,7 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { instrumentSans } from "@/app/fonts";
 import { BrandLogo } from "@/app/components/brand-logo";
 import { authClient } from "@/lib/auth-client";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
@@ -87,7 +88,9 @@ export function AuthForm({ mode, nextPath }: AuthFormProps) {
         <div className="flex justify-center">
           <BrandLogo className="h-9 w-auto" priority />
         </div>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-[1.625rem]">
+        <h2
+          className={`${instrumentSans.className} mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-[1.625rem]`}
+        >
           {formTitle}
         </h2>
       </div>
