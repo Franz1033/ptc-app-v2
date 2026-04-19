@@ -5,7 +5,6 @@ import { HeroIllustration } from "@/app/components/marketplace/hero-illustration
 import { SectionHeading } from "@/app/components/marketplace/section-heading";
 import { SiteHeader } from "@/app/components/marketplace/site-header";
 import {
-  featuredCollections,
   marketplaceStats,
   sellingSteps,
   trustedMeetupSpots,
@@ -118,7 +117,7 @@ export default function HomePage() {
         >
           <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
             <SectionHeading
-              eyebrow="What PTC is"
+              eyebrow="What is PTC"
               title="A marketplace shaped around real collector behavior."
               description="PTC is a social marketplace where collectors list cards, message directly, agree on value, and close deals with clearer context and stronger trust."
             />
@@ -237,36 +236,6 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-            <SectionHeading
-              eyebrow="Collector activity"
-              title="What people come to PTC to do."
-              description="The marketplace supports quick pickups, trade-night planning, and the everyday buying and selling that happens around real collecting communities."
-            />
-
-            <div className="mt-10 grid gap-6 lg:grid-cols-3">
-              {featuredCollections.map((collection) => (
-                <div
-                  key={collection.name}
-                  className="rounded-[24px] border border-slate-200 bg-[#fbfefb] p-6"
-                >
-                  <span
-                    className="block h-1.5 w-16 rounded-full"
-                    style={{ backgroundColor: collection.accent }}
-                  />
-                  <p className="mt-5 text-lg font-semibold text-slate-950">
-                    {collection.name}
-                  </p>
-                  <p className="mt-4 text-sm leading-7 text-slate-500">
-                    {collection.summary}
-                  </p>
-                </div>
-              ))}
             </div>
           </div>
         </section>

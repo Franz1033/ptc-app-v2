@@ -1,0 +1,21 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="720" rx="48" fill="#F6FAFF"/>
+  <rect x="32" y="32" width="896" height="656" rx="36" fill="url(#bg)"/>
+  <rect x="154" y="128" width="652" height="464" rx="30" fill="#0F172A" fill-opacity="0.9"/>
+  <rect x="284" y="138" width="292" height="420" rx="24" transform="rotate(-5 284 138)" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="12"/>
+  <rect x="318" y="186" width="224" height="292" rx="18" fill="url(#card)"/>
+  <path d="M348 374C392 304 472 304 510 374" stroke="#E0F2FE" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="430" cy="274" r="56" fill="#1D4ED8"/>
+  <text x="94" y="106" fill="#1D4ED8" font-family="Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="3">STARTER DECK</text>
+  <text x="94" y="624" fill="#334155" font-family="Arial, sans-serif" font-size="30" font-weight="700">Clean binder copy</text>
+  <defs>
+    <linearGradient id="bg" x1="94" y1="86" x2="832" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DBEAFE"/>
+      <stop offset="1" stop-color="#E0F2FE"/>
+    </linearGradient>
+    <linearGradient id="card" x1="332" y1="204" x2="528" y2="452" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+</svg>

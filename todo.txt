@@ -1,1 +1,3 @@
 [ ] - Improve the text content on the homepage
+[ ] - Improve the search and filer functionality and criteria 
+[ ] - Improve the card design of the listings in the marketplace page

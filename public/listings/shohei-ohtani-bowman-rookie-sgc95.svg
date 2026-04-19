@@ -1,0 +1,22 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="720" rx="48" fill="#F6FAFC"/>
+  <rect x="32" y="32" width="896" height="656" rx="36" fill="url(#bg)"/>
+  <rect x="278" y="96" width="404" height="528" rx="34" fill="#FFFFFF" stroke="#CFFAFE" stroke-width="14"/>
+  <rect x="306" y="124" width="348" height="72" rx="18" fill="#0F172A"/>
+  <text x="338" y="168" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="34" font-weight="700">SGC 9.5</text>
+  <rect x="332" y="224" width="296" height="286" rx="28" fill="url(#card)"/>
+  <circle cx="482" cy="328" r="84" fill="#E0F2FE"/>
+  <path d="M414 404L548 270" stroke="#F8FAFC" stroke-width="18" stroke-linecap="round"/>
+  <path d="M406 300C438 270 526 274 558 308" stroke="#BAE6FD" stroke-width="18" stroke-linecap="round"/>
+  <text x="316" y="578" fill="#0F172A" font-family="Arial, sans-serif" font-size="30" font-weight="700">Bowman rookie slab</text>
+  <defs>
+    <linearGradient id="bg" x1="112" y1="90" x2="836" y2="636" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DBEAFE"/>
+      <stop offset="1" stop-color="#CFFAFE"/>
+    </linearGradient>
+    <linearGradient id="card" x1="350" y1="238" x2="610" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+</svg>

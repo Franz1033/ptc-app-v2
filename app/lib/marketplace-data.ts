@@ -9,12 +9,13 @@ export type CityFilter =
   | "jersey-city";
 
 export type SortFilter = "fresh" | "price-low" | "price-high" | "trade-value";
-
-export type DealFilter =
-  | "all"
-  | "trade-friendly"
-  | "meetup-only"
-  | "under-250";
+export type CityFilterOption = {
+  slug: CityFilter;
+  label: string;
+  popular?: boolean;
+  latitude?: number;
+  longitude?: number;
+};
 
 export type DealType = "buy-only" | "buy-trade" | "trade-only";
 
@@ -32,6 +33,7 @@ export type Listing = {
   slug: string;
   title: string;
   subtitle: string;
+  imageSrc: string;
   franchise: string;
   set: string;
   cardNumber: string;
@@ -71,16 +73,43 @@ export const categoryFilters: Array<{
   { slug: "lots", label: "Lots", countLabel: "Binders and starter stacks" },
 ];
 
-export const cityFilters: Array<{
-  slug: CityFilter;
-  label: string;
-}> = [
-  { slug: "all", label: "Any city" },
-  { slug: "new-york", label: "New York" },
-  { slug: "jersey-city", label: "Jersey City" },
-  { slug: "chicago", label: "Chicago" },
-  { slug: "austin", label: "Austin" },
-  { slug: "los-angeles", label: "Los Angeles" },
+export const cityFilters: CityFilterOption[] = [
+  { slug: "all", label: "Anywhere" },
+  {
+    slug: "new-york",
+    label: "New York, NY",
+    popular: true,
+    latitude: 40.7128,
+    longitude: -74.006,
+  },
+  {
+    slug: "jersey-city",
+    label: "Jersey City, NJ",
+    popular: true,
+    latitude: 40.7178,
+    longitude: -74.0431,
+  },
+  {
+    slug: "chicago",
+    label: "Chicago, IL",
+    popular: true,
+    latitude: 41.8781,
+    longitude: -87.6298,
+  },
+  {
+    slug: "austin",
+    label: "Austin, TX",
+    popular: true,
+    latitude: 30.2672,
+    longitude: -97.7431,
+  },
+  {
+    slug: "los-angeles",
+    label: "Los Angeles, CA",
+    popular: true,
+    latitude: 34.0522,
+    longitude: -118.2437,
+  },
 ];
 
 export const sortFilters: Array<{
@@ -93,49 +122,13 @@ export const sortFilters: Array<{
   { slug: "trade-value", label: "Best trade value" },
 ];
 
-export const dealFilters: Array<{
-  slug: DealFilter;
-  label: string;
-  description: string;
-}> = [
-  { slug: "all", label: "All deals", description: "Cash sales and swaps" },
-  {
-    slug: "trade-friendly",
-    label: "Trade friendly",
-    description: "Open to swaps plus cash",
-  },
-  {
-    slug: "meetup-only",
-    label: "Meetup only",
-    description: "Built for same-day public meetups",
-  },
-  {
-    slug: "under-250",
-    label: "Under $250",
-    description: "Quick pickups and binder upgrades",
-  },
-];
+export const SAME_CITY_MATCH_MAX_DISTANCE_MILES = 35;
 
 export const marketplaceStats = [
   { label: "Active listings", value: "148" },
   { label: "Active sellers", value: "72" },
   { label: "Completed deals", value: "1,284" },
   { label: "New listings this week", value: "41" },
-] as const;
-
-export const marketplacePrinciples = [
-  {
-    title: "Direct chat before the deal",
-    copy: "Message first, then confirm shipping, delivery, pickup, or meetup details.",
-  },
-  {
-    title: "Fixed prices and trade values",
-    copy: "Each listing can show a cash price, a trade value, or both, along with how the deal will be fulfilled.",
-  },
-  {
-    title: "Collectors, not storefronts",
-    copy: "Profiles focus on response time, deal history, fulfillment preferences, and trade interests.",
-  },
 ] as const;
 
 export const featuredCollections = [
@@ -203,6 +196,7 @@ export const listings: Listing[] = [
     slug: "van-gogh-pikachu-sealed-pair",
     title: "Van Gogh Pikachu sealed pair",
     subtitle: "Two sealed promos in Card Saver sleeves.",
+    imageSrc: "/listings/van-gogh-pikachu-sealed-pair.svg",
     franchise: "Pokemon",
     set: "Van Gogh Museum Promo",
     cardNumber: "085",
@@ -240,6 +234,7 @@ export const listings: Listing[] = [
     slug: "michael-jordan-fleer-sticker-psa7",
     title: "1986 Fleer Jordan sticker PSA 7",
     subtitle: "Centered well with a clean surface and sharp eye appeal.",
+    imageSrc: "/listings/michael-jordan-fleer-sticker-psa7.svg",
     franchise: "Sports",
     set: "1986 Fleer Basketball",
     cardNumber: "8",
@@ -278,6 +273,7 @@ export const listings: Listing[] = [
     slug: "wembanyama-prizm-silver-rookie-stack",
     title: "Wemby rookie stack with silver holo",
     subtitle: "Silver prizm plus two base rookies in a ready-to-trade bundle.",
+    imageSrc: "/listings/wembanyama-prizm-silver-rookie-stack.svg",
     franchise: "Sports",
     set: "2023 Prizm Basketball",
     cardNumber: "136",
@@ -315,6 +311,7 @@ export const listings: Listing[] = [
     slug: "caitlin-full-art-psa10",
     title: "Caitlin full art PSA 10",
     subtitle: "Pop report saved in chat and slab sleeve included.",
+    imageSrc: "/listings/caitlin-full-art-psa10.svg",
     franchise: "Pokemon",
     set: "Matchless Fighters",
     cardNumber: "080",
@@ -353,6 +350,7 @@ export const listings: Listing[] = [
     slug: "blue-eyes-sdk-starter-deck-clean",
     title: "Blue-Eyes SDK starter deck copy",
     subtitle: "Clean binder-kept copy with close-ups already attached.",
+    imageSrc: "/listings/blue-eyes-sdk-starter-deck-clean.svg",
     franchise: "Yu-Gi-Oh!",
     set: "Starter Deck Kaiba",
     cardNumber: "SDK-001",
@@ -390,6 +388,7 @@ export const listings: Listing[] = [
     slug: "luffy-op05-alt-art-bgs95",
     title: "Luffy OP05 alt art BGS 9.5",
     subtitle: "Strong subgrades with a slab sleeve and recent comps saved.",
+    imageSrc: "/listings/luffy-op05-alt-art-bgs95.svg",
     franchise: "One Piece",
     set: "Awakening of the New Era",
     cardNumber: "OP05-119",
@@ -428,6 +427,7 @@ export const listings: Listing[] = [
     slug: "pokemon-151-binder-upgrade-lot",
     title: "Pokemon 151 binder upgrade lot",
     subtitle: "Twelve hits with reverse holos and two illustration rares.",
+    imageSrc: "/listings/pokemon-151-binder-upgrade-lot.svg",
     franchise: "Pokemon",
     set: "Scarlet and Violet 151",
     cardNumber: "Lot of 12",
@@ -465,6 +465,7 @@ export const listings: Listing[] = [
     slug: "shohei-ohtani-bowman-rookie-sgc95",
     title: "Shohei Bowman Chrome rookie SGC 9.5",
     subtitle: "Clean tuxedo slab with recent card show comps.",
+    imageSrc: "/listings/shohei-ohtani-bowman-rookie-sgc95.svg",
     franchise: "Sports",
     set: "2018 Bowman Chrome",
     cardNumber: "1",
@@ -553,6 +554,83 @@ export function isSortFilter(value: string): value is SortFilter {
   return sortFilters.some((sort) => sort.slug === value);
 }
 
-export function isDealFilter(value: string): value is DealFilter {
-  return dealFilters.some((deal) => deal.slug === value);
+export function getCityFilterBySlug(slug: CityFilter) {
+  return cityFilters.find((city) => city.slug === slug);
+}
+
+export function getDistanceBetweenCoordinates(
+  sourceLatitude: number,
+  sourceLongitude: number,
+  targetLatitude: number,
+  targetLongitude: number
+) {
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusMiles = 3958.8;
+  const latitudeDelta = toRadians(targetLatitude - sourceLatitude);
+  const longitudeDelta = toRadians(targetLongitude - sourceLongitude);
+  const normalizedSourceLatitude = toRadians(sourceLatitude);
+  const normalizedTargetLatitude = toRadians(targetLatitude);
+
+  const a =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(normalizedSourceLatitude) *
+      Math.cos(normalizedTargetLatitude) *
+      Math.sin(longitudeDelta / 2) ** 2;
+
+  return 2 * earthRadiusMiles * Math.asin(Math.sqrt(a));
+}
+
+export function getSameCityFilter(latitude: number, longitude: number) {
+  const supportedCities = cityFilters.filter(
+    (
+      city
+    ): city is CityFilterOption & {
+      slug: Exclude<CityFilter, "all">;
+      latitude: number;
+      longitude: number;
+    } =>
+      city.slug !== "all" &&
+      typeof city.latitude === "number" &&
+      typeof city.longitude === "number"
+  );
+
+  const nearestCity = supportedCities.reduce<CityFilterOption | null>(
+    (currentNearest, city) => {
+      const distanceToCity = getDistanceBetweenCoordinates(
+        latitude,
+        longitude,
+        city.latitude,
+        city.longitude
+      );
+
+      if (!currentNearest) {
+        return city;
+      }
+
+      const distanceToCurrentNearest = getDistanceBetweenCoordinates(
+        latitude,
+        longitude,
+        currentNearest.latitude ?? latitude,
+        currentNearest.longitude ?? longitude
+      );
+
+      return distanceToCity < distanceToCurrentNearest ? city : currentNearest;
+    },
+    null
+  );
+
+  if (!nearestCity?.latitude || !nearestCity.longitude) {
+    return null;
+  }
+
+  const nearestDistance = getDistanceBetweenCoordinates(
+    latitude,
+    longitude,
+    nearestCity.latitude,
+    nearestCity.longitude
+  );
+
+  return nearestDistance <= SAME_CITY_MATCH_MAX_DISTANCE_MILES
+    ? nearestCity
+    : null;
 }
