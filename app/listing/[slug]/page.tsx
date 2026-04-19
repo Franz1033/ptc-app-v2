@@ -9,10 +9,12 @@ import { SectionHeading } from "@/app/components/marketplace/section-heading";
 import { SiteHeader } from "@/app/components/marketplace/site-header";
 import {
   formatCurrency,
-  getListingBySlug,
-  getRelatedListings,
   listings,
 } from "@/app/lib/marketplace-data";
+import {
+  getMarketplaceListingBySlug,
+  getRelatedMarketplaceListings,
+} from "@/lib/marketplace-listings";
 
 type ListingPageProps = {
   params: Promise<{
@@ -30,7 +32,7 @@ export async function generateMetadata({
   params,
 }: ListingPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const listing = getListingBySlug(slug);
+  const listing = await getMarketplaceListingBySlug(slug);
 
   if (!listing) {
     return {
@@ -48,13 +50,13 @@ export async function generateMetadata({
 
 export default async function ListingPage({ params }: ListingPageProps) {
   const { slug } = await params;
-  const listing = getListingBySlug(slug);
+  const listing = await getMarketplaceListingBySlug(slug);
 
   if (!listing) {
     notFound();
   }
 
-  const relatedListings = getRelatedListings(slug);
+  const relatedListings = await getRelatedMarketplaceListings(slug);
 
   return (
     <>

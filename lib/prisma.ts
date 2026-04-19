@@ -6,6 +6,11 @@ declare global {
   var ptcPrisma: PrismaClient | undefined;
 }
 
+function hasMarketplaceListingDelegate(prisma: PrismaClient) {
+  return typeof (prisma as PrismaClient & { marketplaceListing?: unknown })
+    .marketplaceListing !== "undefined";
+}
+
 function getRuntimeDatabaseUrl() {
   const databaseUrl = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
 
@@ -27,7 +32,10 @@ function createPrismaClient() {
 }
 
 export function getPrismaClient() {
-  if (globalThis.ptcPrisma) {
+  if (
+    globalThis.ptcPrisma &&
+    hasMarketplaceListingDelegate(globalThis.ptcPrisma)
+  ) {
     return globalThis.ptcPrisma;
   }
 

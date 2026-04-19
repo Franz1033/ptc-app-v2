@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { getAuth } from "@/lib/auth";
 import {
+  buildSignInHref,
   DEFAULT_REDIRECT_PATH,
   getSafeRedirectPath,
 } from "@/lib/safe-redirect";
@@ -25,7 +26,7 @@ export async function requireSession(nextPath = DEFAULT_REDIRECT_PATH) {
   const session = await getSession();
 
   if (!session) {
-    redirect(`/sign-in?next=${encodeURIComponent(nextPath)}`);
+    redirect(buildSignInHref(nextPath));
   }
 
   return session;

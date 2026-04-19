@@ -22,6 +22,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">

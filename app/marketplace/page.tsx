@@ -11,10 +11,12 @@ import {
   isCategoryFilter,
   isCityFilter,
   isSortFilter,
-  listings,
   sortFilters,
   type SortFilter,
 } from "@/app/lib/marketplace-data";
+import { getSession } from "@/lib/auth-session";
+import { getMarketplaceListings } from "@/lib/marketplace-listings";
+import { buildSignInHref } from "@/lib/safe-redirect";
 
 type MarketplacePageProps = {
   searchParams: Promise<{
@@ -40,6 +42,11 @@ function getSingleValue(value: string | string[] | undefined) {
 export default async function MarketplacePage({
   searchParams,
 }: MarketplacePageProps) {
+  const session = await getSession();
+  const listings = await getMarketplaceListings();
+  const createListingHref = session
+    ? "/create-listing"
+    : buildSignInHref("/create-listing");
   const params = await searchParams;
   const query = getSingleValue(params.q).trim();
 
@@ -163,7 +170,7 @@ export default async function MarketplacePage({
               </div>
               <div id="marketplace-sort" className="flex shrink-0 items-center">
                 <Link
-                  href="/create-listing"
+                  href={createListingHref}
                   className="inline-flex h-12 items-center justify-center rounded-full bg-emerald-700 px-5 text-sm font-medium !text-white transition hover:bg-emerald-800 hover:!text-white"
                 >
                   Create listing

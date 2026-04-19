@@ -9,6 +9,8 @@ import {
   sellingSteps,
   trustedMeetupSpots,
 } from "@/app/lib/marketplace-data";
+import { getSession } from "@/lib/auth-session";
+import { buildSignInHref } from "@/lib/safe-redirect";
 
 const productPillars = [
   {
@@ -31,7 +33,12 @@ const trustSignals = [
   "Show key deal details clearly.",
 ] as const;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  const createListingHref = session
+    ? "/create-listing"
+    : buildSignInHref("/create-listing");
+
   return (
     <>
       <SiteHeader />
@@ -78,7 +85,7 @@ export default function HomePage() {
                   </span>
                 </Link>
                 <Link
-                  href="/create-listing"
+                  href={createListingHref}
                   className="inline-flex h-14 items-center justify-center rounded-full border border-emerald-200 bg-white px-6 text-base font-medium text-black shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-white hover:shadow-[0_14px_28px_rgba(15,23,42,0.06)]"
                 >
                   Start selling
@@ -279,7 +286,7 @@ export default function HomePage() {
                   </span>
                 </Link>
                 <Link
-                  href="/create-listing"
+                  href={createListingHref}
                   className="inline-flex h-14 items-center justify-center rounded-full border border-emerald-200 bg-white px-6 text-base font-medium text-black shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-white hover:shadow-[0_14px_28px_rgba(15,23,42,0.06)]"
                 >
                   Create listing

@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 
 import { BrandLogo } from "@/app/components/brand-logo";
-import { SignOutButton } from "@/app/components/auth/sign-out-button";
 import { authClient } from "@/lib/auth-client";
 
 type NavLink = {
@@ -17,17 +16,33 @@ type NavLink = {
 const navLinks: readonly NavLink[] = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/community", label: "Community", badge: "Soon" },
-  { href: "/profile", label: "Profile" },
-  { href: "/inbox", label: "Inbox" },
 ];
 
-const guestNavLinks = navLinks.slice(0, 2);
+function HeaderActionButton({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium leading-none text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+    >
+      {children}
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+}
 
 export function SiteHeader() {
   const headerRef = useRef<HTMLElement | null>(null);
   const { data: session, isPending } = authClient.useSession();
-  const accountLabel = session?.user.name ?? session?.user.email;
-  const primaryLinks = session ? navLinks : guestNavLinks;
+  const accountLabel =
+    session?.user.name ?? session?.user.email?.split("@")[0] ?? "Profile";
 
   useEffect(() => {
     const headerElement = headerRef.current;
@@ -75,7 +90,7 @@ export function SiteHeader() {
             aria-label="Primary navigation"
             className="flex flex-wrap items-center gap-4 text-sm text-slate-600 sm:gap-4"
           >
-            {primaryLinks.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
@@ -89,33 +104,60 @@ export function SiteHeader() {
                 ) : null}
               </Link>
             ))}
-            {session ? (
-              <Link
-                href="/create-listing"
-                className="inline-flex h-9 items-center justify-center rounded-full bg-emerald-700 px-4 text-sm font-medium leading-none text-white transition hover:bg-emerald-800"
-              >
-                Create Listing
-              </Link>
-            ) : null}
           </nav>
 
           <div className="flex items-center gap-3">
             {session ? (
               <>
-                <div className="hidden text-right sm:block">
-                  <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                    Signed in
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-slate-700">
-                    {accountLabel}
-                  </p>
-                </div>
-                <SignOutButton />
+                <HeaderActionButton href="/inbox" label="Inbox">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 16 16"
+                    className="h-4 w-4"
+                    fill="none"
+                  >
+                    <path
+                      d="M2.5 4.25C2.5 3.56 3.06 3 3.75 3H12.25C12.94 3 13.5 3.56 13.5 4.25V11.75C13.5 12.44 12.94 13 12.25 13H3.75C3.06 13 2.5 12.44 2.5 11.75V4.25Z"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                    />
+                    <path
+                      d="M3 5L7.2 8.15C7.67 8.5 8.33 8.5 8.8 8.15L13 5"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </HeaderActionButton>
+
+                <HeaderActionButton href="/profile" label={accountLabel}>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 16 16"
+                    className="h-4 w-4"
+                    fill="none"
+                  >
+                    <circle
+                      cx="8"
+                      cy="5.5"
+                      r="2.5"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                    />
+                    <path
+                      d="M3.25 12.75C3.76 10.83 5.59 9.5 8 9.5C10.41 9.5 12.24 10.83 12.75 12.75"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </HeaderActionButton>
               </>
             ) : isPending ? (
               <>
-                <div className="h-9 w-24 animate-pulse rounded-full bg-slate-100" />
-                <div className="h-9 w-24 animate-pulse rounded-full bg-slate-100" />
+                <div className="h-10 w-24 animate-pulse rounded-full bg-slate-100" />
+                <div className="h-10 w-32 animate-pulse rounded-full bg-slate-100" />
               </>
             ) : (
               <>

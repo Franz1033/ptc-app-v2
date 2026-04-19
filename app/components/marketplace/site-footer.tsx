@@ -4,16 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { BrandLogo } from "@/app/components/brand-logo";
+import { authClient } from "@/lib/auth-client";
+import { buildSignInHref } from "@/lib/safe-redirect";
 
 const footerLinks = [
   { href: "/marketplace", label: "Marketplace" },
   { href: "/profile", label: "Profile" },
   { href: "/inbox", label: "Inbox" },
-  { href: "/create-listing", label: "Create Listing" },
 ] as const;
 
 export function SiteFooter() {
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
+  const createListingHref = session
+    ? "/create-listing"
+    : buildSignInHref("/create-listing");
 
   if (pathname === "/sign-in" || pathname === "/sign-up") {
     return null;
@@ -49,6 +54,12 @@ export function SiteFooter() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href={createListingHref}
+              className="transition hover:text-slate-950"
+            >
+              Create Listing
+            </Link>
           </nav>
         </div>
 

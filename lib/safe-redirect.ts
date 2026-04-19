@@ -12,3 +12,14 @@ export function getSafeRedirectPath(
 
   return resolvedPath;
 }
+
+export function buildSignInHref(
+  nextPath: string | string[] | null | undefined,
+) {
+  const safeNextPath = getSafeRedirectPath(nextPath);
+  const searchParams = new URLSearchParams({
+    next: safeNextPath,
+  });
+
+  return `/sign-in?${searchParams.toString()}`;
+}
