@@ -6,18 +6,39 @@ import {
   isCityFilter,
   listings as sampleListings,
   type DealType,
+  type ListingDetailEntry,
   type Listing,
   type ListingCategory,
 } from "@/app/lib/marketplace-data";
-import type {
-  ListingBrandOption,
-  ListingCityOption,
-  ListingConditionOption,
-  ListingDealTypeOption,
-} from "@/app/create-listing/form-options";
+import type { ListingCityOption } from "@/app/create-listing/form-options";
 import { getPrismaClient } from "@/lib/prisma";
 
 const marketplaceListingInclude = {
+  user: true,
+} as const;
+
+const legacyMarketplaceListingSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  subtitle: true,
+  franchise: true,
+  setName: true,
+  cardNumber: true,
+  price: true,
+  tradeValue: true,
+  location: true,
+  city: true,
+  condition: true,
+  grade: true,
+  rarity: true,
+  shipping: true,
+  meetupSpot: true,
+  description: true,
+  tags: true,
+  wants: true,
+  dealType: true,
+  createdAt: true,
   user: true,
 } as const;
 
@@ -25,18 +46,26 @@ type StoredMarketplaceListing = Prisma.MarketplaceListingGetPayload<{
   include: typeof marketplaceListingInclude;
 }>;
 
+type LegacyStoredMarketplaceListing = Prisma.MarketplaceListingGetPayload<{
+  select: typeof legacyMarketplaceListingSelect;
+}>;
+
+type AnyStoredMarketplaceListing =
+  | StoredMarketplaceListing
+  | LegacyStoredMarketplaceListing;
+
 type CreateStoredMarketplaceListingInput = {
   userId: string;
   title: string;
   subtitle: string;
-  franchise: ListingBrandOption;
+  franchise: string;
   setName: string;
   cardNumber: string;
   price: number;
   tradeValue: number;
   location: string;
   city: ListingCityOption;
-  condition: ListingConditionOption;
+  condition: string;
   grade?: string;
   rarity: string;
   shipping: string;
@@ -44,11 +73,35 @@ type CreateStoredMarketplaceListingInput = {
   description: string;
   tags: string[];
   wants: string[];
-  dealType: ListingDealTypeOption;
+  dealType: DealType;
+  listingCategory?: string;
+  listingType?: string;
+  mediaUrls?: string[];
+  specifics?: ListingDetailEntry[];
+  conditionDetails?: ListingDetailEntry[];
+  dealMethods?: string[];
 };
 
 function hasDatabaseConfig() {
   return Boolean(process.env.DATABASE_URL || process.env.DIRECT_URL);
+}
+
+function isMissingStructuredListingColumnError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2022"
+  );
+}
+
+function isDatabaseUnavailableError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P1001"
+  );
 }
 
 function normalizeBrand(value: string) {
@@ -136,13 +189,97 @@ function formatPosted(createdAt: Date) {
   return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
 }
 
-function mapStoredListing(record: StoredMarketplaceListing): Listing {
+function parseDetailEntries(value: Prisma.JsonValue | null) {
+  if (!Array.isArray(value)) {
+    return [] as ListingDetailEntry[];
+  }
+
+  return value.flatMap<ListingDetailEntry>((entry) => {
+    if (
+      !entry ||
+      typeof entry !== "object" ||
+      Array.isArray(entry) ||
+      typeof entry.label !== "string" ||
+      typeof entry.value !== "string"
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        label: entry.label,
+        value: entry.value,
+      },
+    ];
+  });
+}
+
+function hasStructuredListingFields(
+  record: AnyStoredMarketplaceListing,
+): record is StoredMarketplaceListing {
+  return "listingCategory" in record;
+}
+
+async function findStoredMarketplaceListings() {
+  const prisma = getPrismaClient();
+
+  try {
+    return await prisma.marketplaceListing.findMany({
+      include: marketplaceListingInclude,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return [];
+    }
+
+    if (!isMissingStructuredListingColumnError(error)) {
+      throw error;
+    }
+
+    return prisma.marketplaceListing.findMany({
+      select: legacyMarketplaceListingSelect,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+}
+
+async function findStoredMarketplaceListingBySlug(slug: string) {
+  const prisma = getPrismaClient();
+
+  try {
+    return await prisma.marketplaceListing.findUnique({
+      where: { slug },
+      include: marketplaceListingInclude,
+    });
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return null;
+    }
+
+    if (!isMissingStructuredListingColumnError(error)) {
+      throw error;
+    }
+
+    return prisma.marketplaceListing.findUnique({
+      where: { slug },
+      select: legacyMarketplaceListingSelect,
+    });
+  }
+}
+
+function mapStoredListing(record: AnyStoredMarketplaceListing): Listing {
   const brandPresentation = getBrandPresentation(record.franchise);
   const sellerName = record.user.name || record.user.email.split("@")[0] || "PTC seller";
   const normalizedCity =
     isCityFilter(record.city) && record.city !== "all"
       ? record.city
       : "new-york";
+  const hasStructuredFields = hasStructuredListingFields(record);
 
   return {
     slug: record.slug,
@@ -172,6 +309,18 @@ function mapStoredListing(record: StoredMarketplaceListing): Listing {
     surface: brandPresentation.surface,
     tags: record.tags,
     wants: record.wants,
+    listingCategory: hasStructuredFields
+      ? record.listingCategory ?? undefined
+      : undefined,
+    listingType: hasStructuredFields ? record.listingType ?? undefined : undefined,
+    mediaUrls: hasStructuredFields ? record.mediaUrls : undefined,
+    specifics: hasStructuredFields
+      ? parseDetailEntries(record.specifics)
+      : undefined,
+    conditionDetails: hasStructuredFields
+      ? parseDetailEntries(record.conditionDetails)
+      : undefined,
+    dealMethods: hasStructuredFields ? record.dealMethods : undefined,
     seller: {
       name: sellerName,
       badge: "PTC marketplace seller",
@@ -221,12 +370,7 @@ export async function getMarketplaceListings() {
     return sampleListings;
   }
 
-  const storedListings = await getPrismaClient().marketplaceListing.findMany({
-    include: marketplaceListingInclude,
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const storedListings = await findStoredMarketplaceListings();
 
   return [...storedListings.map(mapStoredListing), ...sampleListings].sort(
     (left, right) => left.postedRank - right.postedRank,
@@ -244,10 +388,7 @@ export async function getMarketplaceListingBySlug(slug: string) {
     return null;
   }
 
-  const storedListing = await getPrismaClient().marketplaceListing.findUnique({
-    where: { slug },
-    include: marketplaceListingInclude,
-  });
+  const storedListing = await findStoredMarketplaceListingBySlug(slug);
 
   return storedListing ? mapStoredListing(storedListing) : null;
 }
@@ -288,32 +429,52 @@ export async function createStoredMarketplaceListing(
   }
 
   const slug = await buildUniqueSlug(input.title, input.cardNumber);
+  const prisma = getPrismaClient();
+  const baseData = {
+    slug,
+    title: input.title,
+    subtitle: input.subtitle,
+    franchise: input.franchise,
+    setName: input.setName,
+    cardNumber: input.cardNumber,
+    price: input.price,
+    tradeValue: input.tradeValue,
+    location: input.location,
+    city: input.city,
+    condition: input.condition,
+    grade: input.grade || null,
+    rarity: input.rarity,
+    shipping: input.shipping,
+    meetupSpot: input.meetupSpot,
+    description: input.description,
+    tags: input.tags,
+    wants: input.wants,
+    dealType: input.dealType,
+    userId: input.userId,
+  } as const;
 
-  return getPrismaClient().marketplaceListing.create({
-    data: {
-      slug,
-      title: input.title,
-      subtitle: input.subtitle,
-      franchise: input.franchise,
-      setName: input.setName,
-      cardNumber: input.cardNumber,
-      price: input.price,
-      tradeValue: input.tradeValue,
-      location: input.location,
-      city: input.city,
-      condition: input.condition,
-      grade: input.grade || null,
-      rarity: input.rarity,
-      shipping: input.shipping,
-      meetupSpot: input.meetupSpot,
-      description: input.description,
-      tags: input.tags,
-      wants: input.wants,
-      dealType: input.dealType,
-      userId: input.userId,
-    },
-    include: {
-      user: true,
-    },
-  });
+  try {
+    return await prisma.marketplaceListing.create({
+      data: {
+        ...baseData,
+        listingCategory: input.listingCategory ?? null,
+        listingType: input.listingType ?? null,
+        mediaUrls: input.mediaUrls ?? [],
+        specifics: input.specifics,
+        conditionDetails: input.conditionDetails,
+        dealMethods: input.dealMethods ?? [],
+      },
+      select: {
+        slug: true,
+      },
+    });
+  } catch (error) {
+    if (!isMissingStructuredListingColumnError(error)) {
+      throw error;
+    }
+
+    throw new Error(
+      "Structured listing columns are unavailable in the current database schema.",
+    );
+  }
 }

@@ -87,6 +87,12 @@ model MarketplaceListing {
   tags        String[]
   wants       String[]
   dealType    String
+  listingCategory String?
+  listingType   String?
+  mediaUrls     String[] @default([])
+  specifics     Json?
+  conditionDetails Json?
+  dealMethods   String[] @default([])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String

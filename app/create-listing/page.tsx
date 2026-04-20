@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { CreateListingForm } from "@/app/create-listing/create-listing-form";
-import { SectionHeading } from "@/app/components/marketplace/section-heading";
 import { SiteHeader } from "@/app/components/marketplace/site-header";
 import { requireSession } from "@/lib/auth-session";
 
@@ -10,30 +9,23 @@ export const metadata: Metadata = {
 };
 
 export default async function CreateListingPage() {
-  const session = await requireSession("/create-listing");
-  const sellerLabel =
-    session.user.name || session.user.email.split("@")[0] || "PTC seller";
+  await requireSession("/create-listing");
 
   return (
     <>
       <SiteHeader />
-      <main className="flex-1 bg-[#fbfefb]">
+      <main className="flex-1 bg-[linear-gradient(180deg,#ffffff_0%,#f4f9f1_100%)]">
         <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-18">
-            <SectionHeading
-              eyebrow="Create listing"
-              title="Publish a real marketplace listing"
-              description={`Post under ${sellerLabel} and turn this page into a live listing with a dedicated detail page.`}
-            />
+          <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-9">
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+              Create a listing
+            </h1>
           </div>
         </section>
 
-        <section className="bg-[#fbfefb]">
-          <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-            <CreateListingForm
-              sellerLabel={sellerLabel}
-              sellerEmail={session.user.email}
-            />
+        <section>
+          <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+            <CreateListingForm />
           </div>
         </section>
       </main>

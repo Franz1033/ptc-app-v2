@@ -1,0 +1,206 @@
+Required fields for listing an item (Sports Card & TCG):
+  - Sports Cards
+    - Trading Card Singles
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Sport
+        - Additional (Optional)
+          - UPC
+          - Player/Athlete
+          - Season
+          - Manufacturer
+          - Parallel/Variety
+          - Features
+          - Set
+          - Team 
+          - League
+          - Autographed
+          - Signed by
+          - Autographed Authentication
+          - Autograph Authentication Number
+          - Autograph Format
+          - Card name
+          - Card Number
+          - Type
+          - Year Manufactured
+          - Card Size
+          - Country of Origin
+          - Material
+          - Vintage
+          - Event/Tournament
+          - Language
+          - Original/Licensed Reprint
+          - Card Thickness
+          - Customized 
+          - Insert Set
+          - Print Run
+      - Condition
+        - Condition Type
+          - if ungraded
+            - Card Condition
+          - if graded
+            - Professional Grader
+            - Grade
+            - Certification Number
+      - Description
+      - Price
+    - Trading Card Set
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics 
+        - Additional (Optional)
+          - UPC
+          - Season
+          - Year Manufactured
+          - Manufacturer
+          - Sport
+          - Set
+          - League
+          - Number of Cards
+          - Player/Athlete
+          - Type 
+          - Team
+          - Features
+          - Card Size
+          - Country of Origin
+          - Material
+          - Event/Tournament
+          - Authographed
+          - Autograph Authentication Number
+          - Signed by
+          - Autograph Format
+          - Vintage
+          - Language
+          - Original/Licensed Reprint
+          - Card Name
+          - Card Number
+      - Condition 
+        - New 
+        - Used
+      - Description
+      - Price
+    - Sealed Trading Card Boxes
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Manufacturer
+        - Set
+        - Additional (Optional)
+          - UPC
+          - Season
+          - Year Manufactured
+          - Sport
+          - League
+          - Team 
+          - Configuration
+          - Number of Boxes
+          - Number of Cards
+          - Type
+          - Card Size
+          - Player/Athlete
+          - Event/Tournament
+          - Features
+          - Material
+          - Country of Origin
+          - Autographed
+          - Autograph Authentication
+          - Autograph Authentication Number
+          - Signed by
+          - Autograph Format
+          - Language
+          - Vintage
+          - MPN
+      - Condition
+        - New/Factory Sealed
+        - Open Box/Used
+      - Description
+      - Price
+    - Sealed Trading Card Cases
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Manufacturer
+        - Set
+        - Additional (Optional)
+          - UPC
+          - Season
+          - Year Manufactured
+          - Sport 
+          - League
+          - Team
+          - Configuration
+          - Number of Cards
+          - Number of Cases
+          - Type 
+          - Card Size
+          - Material
+          - Language
+          - Player/Athlete
+          - Features
+          - Country of Origin
+          - Event/Tournament
+          - Vintage
+          - Autographed
+          - Autograph Authentication
+          - Autograph Authentication Number
+          - Signed by
+          - Autograph Format
+          - MPN
+      - Condition
+        - New/Factory Sealed
+        - Open Box/Used
+      - Description
+      - Price 
+    - Sealed Trading Card Packs
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Manufacturer
+        - Set
+        - Additional (Optional)
+          - UPC
+          - Season
+          - Year Manufactured
+          - Sport
+          - Grade
+          - Professional Grader
+          - Certification Number
+          - League
+          - Team
+          - Configuration
+          - Number of Cards
+          - Number of Packs
+          - Type
+          - Card Size
+          - Player/Athlete
+          - Features
+          - Country of Origin
+          - Material
+          - Language
+          - Event/Tournament
+          - Autographed
+          - Autograph Authentication
+          - Autograph Authentication Number
+          - Signed by
+          - Autograph Format
+          - Vintage
+          - MPN
+      - Condition
+        - New/Factory Sealed
+        - Open Box/Used
+      - Description
+      - Price
+  - Collectible Card Game
+    - To Be Followed
+
+Additional fields:
+  - Deal Methods
+    - Meet-up
+      - Add location
+    - Mailing & Delivery

@@ -80,9 +80,12 @@ export function SiteHeader() {
         <Link
           href="/"
           aria-label="Pepe Trading Cards home"
-          className="inline-flex items-center"
+          className="inline-flex items-center gap-3"
         >
           <BrandLogo className="h-7 w-auto" priority />
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-800">
+            Beta
+          </span>
         </Link>
 
         <div className="flex flex-wrap items-center justify-end gap-5 sm:gap-6">

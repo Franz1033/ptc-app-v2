@@ -29,6 +29,11 @@ export type SellerProfile = {
   collectorFocus: string;
 };
 
+export type ListingDetailEntry = {
+  label: string;
+  value: string;
+};
+
 export type Listing = {
   slug: string;
   title: string;
@@ -57,6 +62,12 @@ export type Listing = {
   surface: string;
   tags: string[];
   wants: string[];
+  listingCategory?: string;
+  listingType?: string;
+  mediaUrls?: string[];
+  specifics?: ListingDetailEntry[];
+  conditionDetails?: ListingDetailEntry[];
+  dealMethods?: string[];
   seller: SellerProfile;
 };
 

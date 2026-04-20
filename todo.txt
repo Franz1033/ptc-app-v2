@@ -3,3 +3,7 @@
 [ ] - Improve the card design of the listings in the marketplace page
 [ ] - Improve the design and layout of the individual listing page
 [ ] - Finalize the fields required when creating listings
+[ ] - Add fields for collectible trading cards
+[ ] - Fix the additional details field design, make it more user friendly
+      instead of the overwhelming amoung of fields at once. Replace it also
+      with expand and collapse icon.

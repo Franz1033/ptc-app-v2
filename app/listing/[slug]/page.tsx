@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -21,6 +22,10 @@ type ListingPageProps = {
     slug: string;
   }>;
 };
+
+function isVideoMediaPath(mediaPath: string) {
+  return /\.(mp4|mov|webm|ogg)$/i.test(mediaPath);
+}
 
 export function generateStaticParams() {
   return listings.map((listing) => ({
@@ -57,6 +62,90 @@ export default async function ListingPage({ params }: ListingPageProps) {
   }
 
   const relatedListings = await getRelatedMarketplaceListings(slug);
+  const mediaLinks = listing.mediaUrls ?? [];
+  const categoryLabel = [listing.listingCategory, listing.listingType]
+    .filter(Boolean)
+    .join(" / ");
+  const categoryEntries = categoryLabel
+    ? [
+        {
+          label: "Category",
+          value: categoryLabel,
+        },
+      ]
+    : [];
+  const specificEntries =
+    listing.specifics && listing.specifics.length > 0
+      ? [
+          ...categoryEntries,
+          ...listing.specifics,
+        ]
+      : categoryEntries.length > 0
+        ? [
+            ...categoryEntries,
+            ...(listing.set && listing.set !== categoryLabel
+              ? [{ label: "Collection", value: listing.set }]
+              : []),
+            ...(listing.cardNumber
+              ? [{ label: "Reference", value: listing.cardNumber }]
+              : []),
+            { label: "Condition", value: listing.grade ?? listing.condition },
+          ]
+      : [
+          { label: "Set", value: listing.set },
+          { label: "Card number", value: listing.cardNumber },
+          { label: "Condition", value: listing.grade ?? listing.condition },
+          { label: "Rarity", value: listing.rarity },
+        ];
+  const conditionEntries =
+    listing.conditionDetails && listing.conditionDetails.length > 0
+      ? listing.conditionDetails
+      : [{ label: "Condition", value: listing.grade ?? listing.condition }];
+  const deliveryEntries = [
+    ...conditionEntries,
+    { label: "Location", value: listing.location },
+    { label: "Distance", value: listing.distance },
+    { label: "Shipping", value: listing.shipping },
+    { label: "Response time", value: listing.seller.responseTime },
+    ...(listing.dealMethods && listing.dealMethods.length > 0
+      ? [
+          {
+            label: "Deal methods",
+            value: listing.dealMethods.join(", "),
+          },
+        ]
+      : []),
+  ];
+  const hasTradeTargets = listing.wants.length > 0;
+  const valueHighlights =
+    listing.dealType === "buy-only"
+      ? [
+          {
+            label: "Price",
+            value: formatCurrency(listing.price),
+            note: "Listed price.",
+          },
+          {
+            label: "Delivery",
+            value:
+              listing.dealMethods && listing.dealMethods.length > 0
+                ? listing.dealMethods.join(", ")
+                : listing.shipping,
+            note: "Available handoff methods.",
+          },
+        ]
+      : [
+          {
+            label: "Buy now",
+            value: formatCurrency(listing.price),
+            note: "Fixed price.",
+          },
+          {
+            label: "Trade target",
+            value: formatCurrency(listing.tradeValue),
+            note: "Target trade value.",
+          },
+        ];
 
   return (
     <>
@@ -91,6 +180,11 @@ export default async function ListingPage({ params }: ListingPageProps) {
               <CardArt listing={listing} />
 
             <div className="flex flex-wrap gap-2">
+              {listing.listingType ? (
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800">
+                  {listing.listingType}
+                </span>
+              ) : null}
               {listing.tags.map((tag) => (
                 <span
                   key={tag}
@@ -100,6 +194,56 @@ export default async function ListingPage({ params }: ListingPageProps) {
                 </span>
               ))}
             </div>
+
+            {mediaLinks.length > 0 ? (
+              <div className="rounded-[24px] border border-slate-200 bg-[#fbfefb] p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                  Seller media
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {mediaLinks.map((mediaLink, index) => (
+                    <div
+                      key={mediaLink}
+                      className="group overflow-hidden rounded-[22px] border border-slate-200 bg-white transition hover:border-emerald-200"
+                    >
+                      <div className="relative aspect-[4/3] bg-slate-100">
+                        {isVideoMediaPath(mediaLink) ? (
+                          <video
+                            controls
+                            preload="metadata"
+                            className="h-full w-full object-cover"
+                          >
+                            <source src={mediaLink} />
+                            Your browser does not support embedded video playback.
+                          </video>
+                        ) : (
+                          <Image
+                            src={mediaLink}
+                            alt={`${listing.title} media ${index + 1}`}
+                            fill
+                            sizes="(min-width: 1024px) 20vw, (min-width: 640px) 40vw, 100vw"
+                            className="object-cover transition duration-300 group-hover:scale-[1.02]"
+                          />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between gap-3 px-4 py-3">
+                        <p className="text-sm font-medium text-slate-700">
+                          {isVideoMediaPath(mediaLink) ? "Video" : "Image"} {index + 1}
+                        </p>
+                        <a
+                          href={mediaLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700"
+                        >
+                          Open
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="grid gap-6 border-t border-slate-200 pt-6 sm:grid-cols-3">
               <div>
@@ -146,28 +290,19 @@ export default async function ListingPage({ params }: ListingPageProps) {
               </p>
 
             <div className="mt-10 grid gap-8 border-y border-slate-200 py-8 sm:grid-cols-2">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                  Buy now
-                </p>
-                <p className="mt-3 text-5xl font-semibold tracking-tight text-slate-950">
-                  {formatCurrency(listing.price)}
-                </p>
-                <p className="mt-3 max-w-sm text-sm leading-6 text-slate-500">
-                  Fixed price.
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                  Trade target
-                </p>
-                <p className="mt-3 text-5xl font-semibold tracking-tight text-slate-950">
-                  {formatCurrency(listing.tradeValue)}
-                </p>
-                <p className="mt-3 max-w-sm text-sm leading-6 text-slate-500">
-                  Target trade value.
-                </p>
-              </div>
+              {valueHighlights.map((highlight) => (
+                <div key={highlight.label}>
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                    {highlight.label}
+                  </p>
+                  <p className="mt-3 text-5xl font-semibold tracking-tight text-slate-950">
+                    {highlight.value}
+                  </p>
+                  <p className="mt-3 max-w-sm text-sm leading-6 text-slate-500">
+                    {highlight.note}
+                  </p>
+                </div>
+              ))}
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -223,18 +358,13 @@ export default async function ListingPage({ params }: ListingPageProps) {
         <div className="mx-auto grid w-full max-w-7xl gap-12 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:px-8">
           <div>
             <SectionHeading
-              eyebrow="Card profile"
-              title="Card details"
-              description="Basic card information."
+              eyebrow="Specifics"
+              title="Listing specifics"
+              description="Structured item details captured from the listing form."
             />
 
             <dl className="mt-8 border-t border-slate-200">
-              {[
-                ["Set", listing.set],
-                ["Card number", listing.cardNumber],
-                ["Condition", listing.grade ?? listing.condition],
-                ["Rarity", listing.rarity],
-              ].map(([label, value]) => (
+              {specificEntries.map(({ label, value }) => (
                 <div
                   key={label}
                   className="flex items-center justify-between gap-4 border-b border-slate-200 py-4"
@@ -250,18 +380,13 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
           <div>
             <SectionHeading
-              eyebrow="Deal details"
-              title="Deal details"
-              description="Location, shipping, and reply time."
+              eyebrow="Condition & delivery"
+              title="Condition and delivery"
+              description="Condition state, handoff details, and seller response context."
             />
 
             <dl className="mt-8 border-t border-slate-200">
-              {[
-                ["Location", listing.location],
-                ["Distance", listing.distance],
-                ["Shipping", listing.shipping],
-                ["Response time", listing.seller.responseTime],
-              ].map(([label, value]) => (
+              {deliveryEntries.map(({ label, value }) => (
                 <div
                   key={label}
                   className="flex items-center justify-between gap-4 border-b border-slate-200 py-4"
@@ -311,15 +436,24 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
           <div>
             <SectionHeading
-              eyebrow="What the seller wants"
-              title="Trade targets"
-              description="What the seller is looking for."
+              eyebrow={hasTradeTargets ? "What the seller wants" : "Deal methods"}
+              title={hasTradeTargets ? "Trade targets" : "Available handoff methods"}
+              description={
+                hasTradeTargets
+                  ? "What the seller is looking for."
+                  : "How the seller can complete the deal."
+              }
             />
 
             <div className="mt-8 border-t border-slate-200">
-              {listing.wants.map((want) => (
-                <div key={want} className="border-b border-slate-200 py-4">
-                  <p className="text-base leading-7 text-slate-950">{want}</p>
+              {(hasTradeTargets
+                ? listing.wants
+                : listing.dealMethods && listing.dealMethods.length > 0
+                  ? listing.dealMethods
+                  : [listing.shipping]
+              ).map((item) => (
+                <div key={item} className="border-b border-slate-200 py-4">
+                  <p className="text-base leading-7 text-slate-950">{item}</p>
                 </div>
               ))}
             </div>
