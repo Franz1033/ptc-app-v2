@@ -11,25 +11,28 @@ import {
   type CreateListingFormValues,
   getConditionOptionsForCategory,
   getDefaultConditionTypeForCategory,
+  getDefaultListingTypeForCategory,
+  getListingTypeOptionsForCategory,
   getSpecificFieldConfigForCategory,
   initialCreateListingState,
   initialCreateListingValues,
+  isCollectibleCardGameListingType,
   isListingCategory,
   isListingConditionType,
   isListingDealMethod,
+  isSingleCardListingType,
   isProfessionalGrader,
   isSportsCardListingType,
   listingCategoryOptions,
   listingDealMethodOptions,
   listingSpecificFieldDefinitions,
-  sportsCardListingTypeOptions,
   type CreateListingFieldDefinition,
   type CreateListingListingTypeOption,
   type ListingCategoryOption,
   type ListingConditionTypeOption,
   type ListingDealMethodOption,
   type ListingSpecificFieldName,
-  type SportsCardListingTypeOption,
+  type ListingTypeOption,
 } from "@/app/create-listing/form-options";
 
 type ConfiguredFieldProps = {
@@ -45,6 +48,11 @@ type MediaPreview = {
   file: File;
   name: string;
   url: string;
+};
+
+type DropdownOption = {
+  value: string;
+  label: string;
 };
 
 const createListingDraftStorageKey = "ptc:create-listing-draft";
@@ -87,6 +95,139 @@ function FieldError({ message }: { message?: string }) {
 
 function revokeMediaPreviews(previews: MediaPreview[]) {
   previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+}
+
+function FormDropdown({
+  id,
+  name,
+  value,
+  options,
+  onChange,
+  disabled,
+}: {
+  id: string;
+  name: string;
+  value: string;
+  options: ReadonlyArray<DropdownOption>;
+  onChange: (nextValue: string) => void;
+  disabled?: boolean;
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOption =
+    options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        rootRef.current &&
+        event.target instanceof Node &&
+        !rootRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <input type="hidden" name={name} value={value} />
+
+      <button
+        id={id}
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen((currentOpen) => !currentOpen)}
+        className={`${fieldClassName} mt-2 flex items-center justify-between gap-3 text-left ${
+          isOpen ? "border-emerald-400 ring-4 ring-emerald-100" : ""
+        }`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className="truncate">{selectedOption?.label ?? "Select an option"}</span>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 20 20"
+          className={`h-4 w-4 shrink-0 text-slate-500 transition duration-200 ${
+            isOpen ? "rotate-180 text-slate-700" : ""
+          }`}
+          fill="none"
+        >
+          <path
+            d="M5.5 7.75L10 12.25L14.5 7.75"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {isOpen ? (
+        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-[16px] border border-slate-200 bg-white p-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+          <div className="max-h-72 overflow-y-auto">
+            {options.map((option) => {
+              const isSelected = option.value === value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 rounded-[12px] px-3 py-2.5 text-left text-sm transition ${
+                    isSelected
+                      ? "bg-emerald-50 text-slate-950"
+                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                  }`}
+                  role="option"
+                  aria-selected={isSelected}
+                >
+                  <span>{option.label}</span>
+                  {isSelected ? (
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 20 20"
+                      className="h-4 w-4 shrink-0 text-emerald-700"
+                      fill="none"
+                    >
+                      <path
+                        d="M5.75 10.25L8.5 13L14.25 7.25"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function FormSection({
@@ -220,10 +361,13 @@ function getCreateListingDraftValues(formData: FormData): CreateListingFormValue
     ? rawCategoryFamily
     : initialCreateListingValues.categoryFamily;
   const rawListingType = String(formData.get("listingType") ?? "").trim();
+  const supportedListingTypeOptions = getListingTypeOptionsForCategory(categoryFamily);
   const listingType =
-    categoryFamily === "sports-cards" && isSportsCardListingType(rawListingType)
+    (categoryFamily === "sports-cards" && isSportsCardListingType(rawListingType)) ||
+    (categoryFamily === "collectible-card-game" &&
+      isCollectibleCardGameListingType(rawListingType))
       ? rawListingType
-      : "";
+      : supportedListingTypeOptions[0]?.value ?? "";
   const rawConditionType = String(formData.get("conditionType") ?? "").trim();
   const supportedConditionOptions = getConditionOptionsForCategory(
     categoryFamily,
@@ -394,6 +538,7 @@ export function CreateListingForm() {
   const [saveDraftLabel, setSaveDraftLabel] = useState("Save draft");
 
   const isSportsCategory = categoryFamily === "sports-cards";
+  const listingTypeOptions = getListingTypeOptionsForCategory(categoryFamily);
   const conditionOptions = getConditionOptionsForCategory(
     categoryFamily,
     listingType,
@@ -402,8 +547,7 @@ export function CreateListingForm() {
     categoryFamily,
     listingType,
   );
-  const isSingleListing =
-    isSportsCategory && listingType === "trading-card-singles";
+  const isSingleListing = !!listingType && isSingleCardListingType(listingType);
   const showCardCondition = isSingleListing && conditionType === "ungraded";
   const showGradingFields = isSingleListing && conditionType === "graded";
   const isMeetupSelected = dealMethods.includes("meet-up");
@@ -411,6 +555,11 @@ export function CreateListingForm() {
   const primaryMediaPreview = mediaPreviews[0];
   const remainingMediaPreviews = mediaPreviews.slice(1, 7);
   const hiddenMediaPreviewCount = Math.max(mediaPreviews.length - 7, 0);
+  const titlePlaceholder = isSportsCategory
+    ? "2023 Prizm Victor Wembanyama silver rookie"
+    : listingType === "ccg-individual-cards"
+      ? "Charizard ex 199/165 illustration rare"
+      : "One Piece OP-05 booster box";
 
   useEffect(() => {
     mediaPreviewsRef.current = mediaPreviews;
@@ -546,10 +695,12 @@ export function CreateListingForm() {
   function handleCategoryChange(nextCategoryFamily: ListingCategoryOption) {
     setCategoryFamily(nextCategoryFamily);
 
-    const nextListingType: CreateListingListingTypeOption =
-      nextCategoryFamily === "sports-cards"
-        ? listingType || initialCreateListingValues.listingType
-        : "";
+    const nextListingTypeOptions = getListingTypeOptionsForCategory(
+      nextCategoryFamily,
+    );
+    const nextListingType =
+      nextListingTypeOptions.find((option) => option.value === listingType)?.value ??
+      getDefaultListingTypeForCategory(nextCategoryFamily);
 
     setListingType(nextListingType);
 
@@ -565,7 +716,7 @@ export function CreateListingForm() {
     }
   }
 
-  function handleListingTypeChange(nextListingType: SportsCardListingTypeOption) {
+  function handleListingTypeChange(nextListingType: ListingTypeOption) {
     setListingType(nextListingType);
 
     const nextConditionOptions = getConditionOptionsForCategory(
@@ -895,6 +1046,42 @@ export function CreateListingForm() {
               <div className="grid gap-5">
                 <div>
                   <label
+                    htmlFor="categoryFamily"
+                    className="text-sm font-medium text-slate-900"
+                  >
+                    Category
+                  </label>
+                  <FormDropdown
+                    id="categoryFamily"
+                    name="categoryFamily"
+                    value={categoryFamily}
+                    onChange={(nextValue) =>
+                      handleCategoryChange(nextValue as ListingCategoryOption)
+                    }
+                    options={listingCategoryOptions}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="listingType"
+                    className="text-sm font-medium text-slate-900"
+                  >
+                    Listing type
+                  </label>
+                  <FormDropdown
+                    id="listingType"
+                    name="listingType"
+                    value={listingType}
+                    onChange={(nextValue) =>
+                      handleListingTypeChange(nextValue as ListingTypeOption)
+                    }
+                    options={listingTypeOptions}
+                  />
+                </div>
+
+                <div>
+                  <label
                     htmlFor="title"
                     className="text-sm font-medium text-slate-900"
                   >
@@ -904,88 +1091,20 @@ export function CreateListingForm() {
                     id="title"
                     name="title"
                     defaultValue={state.values.title}
-                    placeholder={
-                      isSportsCategory
-                        ? "2023 Prizm Victor Wembanyama silver rookie"
-                        : "One Piece OP-05 booster box"
-                    }
+                    placeholder={titlePlaceholder}
                     className={`${fieldClassName} mt-2`}
                     required
                   />
                   <FieldError message={state.fieldErrors?.title} />
                 </div>
-
-                <div>
-                  <label
-                    htmlFor="categoryFamily"
-                    className="text-sm font-medium text-slate-900"
-                  >
-                    Category
-                  </label>
-                  <select
-                    id="categoryFamily"
-                    name="categoryFamily"
-                    value={categoryFamily}
-                    onChange={(event) =>
-                      handleCategoryChange(
-                        event.target.value as ListingCategoryOption,
-                      )
-                    }
-                    className={`${fieldClassName} mt-2`}
-                  >
-                    {listingCategoryOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {isSportsCategory ? (
-                  <div>
-                    <label
-                      htmlFor="listingType"
-                      className="text-sm font-medium text-slate-900"
-                    >
-                      Listing type
-                    </label>
-                    <select
-                      id="listingType"
-                      name="listingType"
-                      value={listingType}
-                      onChange={(event) =>
-                        handleListingTypeChange(
-                          event.target.value as SportsCardListingTypeOption,
-                        )
-                      }
-                      className={`${fieldClassName} mt-2`}
-                    >
-                      {sportsCardListingTypeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : null}
               </div>
             </section>
 
-          {isSportsCategory ? (
-              <FormSection
-                title="Details"
-              >
+            <FormSection title="Details">
                 {specificFieldConfig.required.length > 0 ? (
-                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-5">
                     {specificFieldConfig.required.map((fieldName) => (
-                      <div
-                        key={fieldName}
-                        className={
-                          fieldName === "sport"
-                            ? "sm:col-span-2 xl:col-span-3"
-                            : undefined
-                        }
-                      >
+                      <div key={fieldName}>
                         <ConfiguredField
                           definition={listingSpecificFieldDefinitions[fieldName]}
                           value={state.values[fieldName]}
@@ -999,21 +1118,51 @@ export function CreateListingForm() {
 
                 {specificFieldConfig.optional.length > 0 ? (
                   <details
-                    className={`overflow-hidden rounded-[18px] border border-slate-200 bg-slate-50 open:bg-white ${
+                    className={`group overflow-hidden rounded-[18px] border border-slate-200 bg-[linear-gradient(180deg,#fbfcfd_0%,#f8fafc_100%)] open:bg-white ${
                       specificFieldConfig.required.length > 0 ? "mt-6" : ""
                     }`}
                   >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:hidden">
-                      <span className="text-sm font-semibold text-slate-950">
-                        Additional details
-                      </span>
-                      <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Expand
-                      </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold text-slate-950">
+                            Additional details
+                          </span>
+                          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                            {specificFieldConfig.optional.length} fields
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm leading-6 text-slate-500">
+                          Optional specifics for buyers who want more detail.
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-3">
+                        <span className="text-sm font-medium text-slate-500">
+                          <span className="group-open:hidden">Show</span>
+                          <span className="hidden group-open:inline">Hide</span>
+                        </span>
+                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition group-open:border-slate-300 group-open:text-slate-700">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 20 20"
+                            className="h-4 w-4 transition duration-200 group-open:rotate-180"
+                            fill="none"
+                          >
+                            <path
+                              d="M5.5 7.75L10 12.25L14.5 7.75"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                      </div>
                     </summary>
 
                     <div className="border-t border-slate-200 px-5 py-5">
-                      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                      <div className="grid gap-5 sm:grid-cols-2">
                         {specificFieldConfig.optional.map((fieldName) => (
                           <ConfiguredField
                             key={fieldName}
@@ -1026,8 +1175,7 @@ export function CreateListingForm() {
                     </div>
                   </details>
                 ) : null}
-              </FormSection>
-          ) : null}
+            </FormSection>
 
           <FormSection title="Condition">
             <div className="grid gap-5">
@@ -1038,21 +1186,15 @@ export function CreateListingForm() {
                 >
                   Condition type
                 </label>
-                <select
+                <FormDropdown
                   id="conditionType"
                   name="conditionType"
                   value={conditionType}
-                  onChange={(event) =>
-                    setConditionType(event.target.value as ListingConditionTypeOption)
+                  onChange={(nextValue) =>
+                    setConditionType(nextValue as ListingConditionTypeOption)
                   }
-                  className={`${fieldClassName} mt-2`}
-                >
-                  {conditionOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  options={conditionOptions}
+                />
                 <FieldError message={state.fieldErrors?.conditionType} />
               </div>
 

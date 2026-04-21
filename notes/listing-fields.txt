@@ -197,7 +197,170 @@ Required fields for listing an item (Sports Card & TCG):
       - Description
       - Price
   - Collectible Card Game
-    - To Be Followed
+    - CCG Individual Cards
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Game
+        - Additional (Optional)
+          - UPC
+          - Card Type
+          - Specialty
+          - State
+          - Set
+          - Card Name
+          - Character
+          - Age Level
+          - Rarity
+          - Features
+          - Manufacturer
+          - Finish
+          - Attribute/MTC:Color
+          - Creature/Monster Type
+          - Card Number
+          - Autographed
+          - Autograph Authentication
+          - Autograph Authentication Number
+          - Autograph Format
+          - Signed by
+          - Language
+          - Year Manufactured
+          - Country of Origin
+          - Vintage
+          - Material
+          - Card Size
+          - Illustrator
+          - HP
+          - Attack/Power
+          - Defense/Toughness
+          - Cost
+          - Convention/Event
+          - Customized
+          - Franchise
+      - Condition
+        - Condition Type
+          - if ungraded
+            - Card Condition
+          - if graded
+            - Professional Grader
+            - Grade
+            - Certification Number
+      - Description
+      - Price
+    - CCG Sealed Boxes
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Game
+        - Set
+        - Additional (Optional)
+          - UPC
+          - Features
+          - Character
+          - Language
+          - Manufacturer
+          - Card Size
+          - Year Manufactured
+          - Card Size
+          - Year Manufactured
+          - Age Level
+          - Configuration
+          - Number of Cards
+          - Number of Boxes
+          - Country of Origin
+          - Convention/Event
+          - Vintage
+          - Authographed
+          - Signed by
+          - Autograph Authentication
+          - Autograph Authentication Number
+          - Autograph Format
+          - Material
+          - Featured Person/Artist
+          - MPN
+          - Illustrator
+      - Condition
+        - New/Factory Sealed
+        - Open Box/Used
+      - Description
+      - Price
+    - CCG Sealed Cases
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Game
+        - Set
+        - Additional (Optional)
+          - UPC
+          - Manufacturer
+          - Configuration
+          - Number of Cards
+          - Number of Cases
+          - Features
+          - Language
+          - Character
+          - Years Manufactured
+          - Age Level 
+          - Card Size
+          - Country of Origin
+          - Material
+          - Vintage
+          - Authographed
+          - Autograph Authentication
+          - Autograph Authentication Number
+          - Autograph Format
+          - Signed by
+          - Convention/Event
+          - MPN
+          - Illustrator
+          - Featured Person/Artist
+      - Condition
+        - New/Factory Sealed
+        - Open Box/Used
+      - Description
+      - Price
+    - CCG Sealed Packs
+      - Image & Video
+      - Title 
+      - Category
+      - Specifics
+        - Game
+        - Set
+        - Additional (Optional)
+          - UPC
+          - Features
+          - Characters
+          - Grade
+          - Professional Grader
+          - Certification Number
+          - Language
+          - Manufacturer
+          - Year Manufactured
+          - Age Level
+          - Card Size
+          - Configuration
+          - Numer of Cards
+          - Number of Packs
+          - Country of Origin
+          - Vintage
+          - Material
+          - Convention/Event
+          - Autographed
+          - Autograph Authentication
+          = Autograph Authentication Number
+          - Signed By 
+          - Autograph Format
+          - Featured Person/Artist
+          - MPN
+          - Illustrator
+      - Condition
+        - New/Factory Sealed
+        - Open Box/Used
+      - Description
+      - Price
 
 Additional fields:
   - Deal Methods

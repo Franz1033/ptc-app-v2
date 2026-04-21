@@ -2,8 +2,13 @@
 [ ] - Improve the search and filer functionality and criteria 
 [ ] - Improve the card design of the listings in the marketplace page
 [ ] - Improve the design and layout of the individual listing page
-[ ] - Finalize the fields required when creating listings
-[ ] - Add fields for collectible trading cards
-[ ] - Fix the additional details field design, make it more user friendly
+[X] - Finalize the fields required when creating listings
+[X] - Add fields for collectible trading cards
+[x] - Fix the additional details field design, make it more user friendly
       instead of the overwhelming amoung of fields at once. Replace it also
       with expand and collapse icon.
+[ ] - Simplify the additional details section in create listing
+[ ] - Add a location in the create listing (auto city detection not pre-filled)
+      to serve as basis to find listings near me or to certain location
+[ ] - Finalize the fields (Dropdown with pre-filled values for some ex. game)
+[ ] - Fix the design of the fields, some are still in its default design especially the drowpdowns

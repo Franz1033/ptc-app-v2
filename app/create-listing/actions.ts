@@ -7,6 +7,7 @@ import {
   type CreateListingFieldErrors,
   type CreateListingFormState,
   type CreateListingFormValues,
+  getDefaultListingTypeForCategory,
   getCityLabel,
   getConditionLabel,
   getConditionOptionsForCategory,
@@ -16,11 +17,13 @@ import {
   getListingTypeLabel,
   getSpecificFieldConfigForCategory,
   initialCreateListingValues,
+  isCollectibleCardGameListingType,
   isListingCategory,
   isListingCity,
   isListingConditionType,
   isListingDealMethod,
   isProfessionalGrader,
+  isSingleCardListingType,
   isSportsCardListingType,
   listingSpecificFieldDefinitions,
   type ListingSpecificFieldName,
@@ -44,6 +47,7 @@ type ListingDetailEntry = {
 const textFieldNames = [
   "title",
   "sport",
+  "game",
   "upc",
   "playerAthlete",
   "season",
@@ -53,6 +57,15 @@ const textFieldNames = [
   "setName",
   "team",
   "league",
+  "cardType",
+  "specialty",
+  "cardState",
+  "character",
+  "ageLevel",
+  "rarity",
+  "finish",
+  "attributeColor",
+  "creatureMonsterType",
   "autographed",
   "signedBy",
   "autographAuthentication",
@@ -67,12 +80,20 @@ const textFieldNames = [
   "material",
   "vintage",
   "eventTournament",
+  "conventionEvent",
   "language",
   "originalLicensedReprint",
   "cardThickness",
   "customized",
   "insertSet",
   "printRun",
+  "illustrator",
+  "hp",
+  "attackPower",
+  "defenseToughness",
+  "cost",
+  "franchise",
+  "featuredPersonArtist",
   "numberOfCards",
   "configuration",
   "numberOfBoxes",
@@ -135,11 +156,12 @@ function getFormValues(formData: FormData): CreateListingFormValues {
     : initialCreateListingValues.categoryFamily;
   const rawListingType = getTrimmedTextValue(formData, "listingType");
   const listingType =
-    categoryFamily === "sports-cards"
-      ? isSportsCardListingType(rawListingType)
-        ? rawListingType
-        : initialCreateListingValues.listingType
-      : "";
+    (categoryFamily === "sports-cards" &&
+      isSportsCardListingType(rawListingType)) ||
+    (categoryFamily === "collectible-card-game" &&
+      isCollectibleCardGameListingType(rawListingType))
+      ? rawListingType
+      : getDefaultListingTypeForCategory(categoryFamily);
 
   const rawConditionType = getTrimmedTextValue(formData, "conditionType");
   const supportedConditionOptions = getConditionOptionsForCategory(
@@ -209,7 +231,7 @@ function buildSpecificEntries(
 }
 
 function buildConditionEntries(values: CreateListingFormValues) {
-  if (values.categoryFamily !== "sports-cards") {
+  if (!values.listingType || !isSingleCardListingType(values.listingType)) {
     return [
       {
         label: "Condition",
@@ -225,21 +247,14 @@ function buildConditionEntries(values: CreateListingFormValues) {
     },
   ];
 
-  if (
-    values.listingType === "trading-card-singles" &&
-    values.conditionType === "ungraded" &&
-    values.cardCondition
-  ) {
+  if (values.conditionType === "ungraded" && values.cardCondition) {
     entries.push({
       label: "Card Condition",
       value: values.cardCondition,
     });
   }
 
-  if (
-    values.listingType === "trading-card-singles" &&
-    values.conditionType === "graded"
-  ) {
+  if (values.conditionType === "graded") {
     if (values.professionalGrader) {
       entries.push({
         label: "Professional Grader",
@@ -266,17 +281,14 @@ function buildConditionEntries(values: CreateListingFormValues) {
 }
 
 function buildConditionSummary(values: CreateListingFormValues) {
-  if (values.categoryFamily !== "sports-cards") {
+  if (!values.listingType || !isSingleCardListingType(values.listingType)) {
     return {
       condition: getConditionLabel(values.conditionType),
       grade: undefined,
     };
   }
 
-  if (
-    values.listingType === "trading-card-singles" &&
-    values.conditionType === "graded"
-  ) {
+  if (values.conditionType === "graded") {
     return {
       condition: "Graded",
       grade:
@@ -286,10 +298,7 @@ function buildConditionSummary(values: CreateListingFormValues) {
     };
   }
 
-  if (
-    values.listingType === "trading-card-singles" &&
-    values.conditionType === "ungraded"
-  ) {
+  if (values.conditionType === "ungraded") {
     return {
       condition: values.cardCondition || "Ungraded",
       grade: undefined,
@@ -310,42 +319,72 @@ function getSportsListingType(values: CreateListingFormValues) {
 }
 
 function buildSubtitle(values: CreateListingFormValues) {
-  if (values.categoryFamily !== "sports-cards") {
-    return (
-      [
-        getListingCategoryLabel(values.categoryFamily),
-        getConditionLabel(values.conditionType),
-      ]
-        .filter(Boolean)
-        .join(" / ")
-        .slice(0, 140) || "Collectible card listing"
-    );
+  const listingTypeLabel =
+    values.listingType &&
+    ((values.categoryFamily === "sports-cards" &&
+      isSportsCardListingType(values.listingType)) ||
+      (values.categoryFamily === "collectible-card-game" &&
+        isCollectibleCardGameListingType(values.listingType)))
+      ? getListingTypeLabel(values.listingType)
+      : "";
+
+  if (values.categoryFamily === "sports-cards") {
+    const parts = [
+      listingTypeLabel,
+      values.sport,
+      values.setName,
+      values.manufacturer,
+    ].filter(Boolean);
+
+    return parts.join(" / ").slice(0, 140) || "Sports card listing";
   }
 
-  const sportsListingType = getSportsListingType(values);
-  const parts = [
-    sportsListingType ? getListingTypeLabel(sportsListingType) : "",
-    values.sport,
-    values.setName,
-    values.manufacturer,
-  ].filter(Boolean);
+  if (values.categoryFamily === "collectible-card-game") {
+    const parts = [
+      listingTypeLabel,
+      values.game,
+      values.cardName || values.setName,
+      values.manufacturer,
+    ].filter(Boolean);
 
-  return parts.join(" / ").slice(0, 140) || "Sports card listing";
+    return parts.join(" / ").slice(0, 140) || "Collectible card game listing";
+  }
+
+  return (
+    [
+      getListingCategoryLabel(values.categoryFamily),
+      getConditionLabel(values.conditionType),
+    ]
+      .filter(Boolean)
+      .join(" / ")
+      .slice(0, 140) || "Collectible card listing"
+  );
 }
 
 function buildRaritySummary(values: CreateListingFormValues) {
-  if (values.categoryFamily !== "sports-cards") {
-    return getListingCategoryLabel(values.categoryFamily);
+  const listingTypeLabel =
+    values.listingType &&
+    ((values.categoryFamily === "sports-cards" &&
+      isSportsCardListingType(values.listingType)) ||
+      (values.categoryFamily === "collectible-card-game" &&
+        isCollectibleCardGameListingType(values.listingType)))
+      ? getListingTypeLabel(values.listingType)
+      : "Listing";
+
+  if (values.categoryFamily === "sports-cards") {
+    return (
+      values.parallelVariety ||
+      values.cardName ||
+      values.type ||
+      listingTypeLabel
+    );
   }
 
-  const sportsListingType = getSportsListingType(values);
+  if (values.categoryFamily === "collectible-card-game") {
+    return values.rarity || values.cardName || values.cardType || listingTypeLabel;
+  }
 
-  return (
-    values.parallelVariety ||
-    values.cardName ||
-    values.type ||
-    (sportsListingType ? getListingTypeLabel(sportsListingType) : "Listing")
-  );
+  return getListingCategoryLabel(values.categoryFamily);
 }
 
 function buildShippingSummary(values: CreateListingFormValues) {
@@ -370,14 +409,25 @@ function buildDefaultTags(
   conditionLabel: string,
 ) {
   const sportsListingType = getSportsListingType(values);
+  const listingTypeLabel =
+    values.listingType &&
+    ((values.categoryFamily === "sports-cards" &&
+      isSportsCardListingType(values.listingType)) ||
+      (values.categoryFamily === "collectible-card-game" &&
+        isCollectibleCardGameListingType(values.listingType)))
+      ? getListingTypeLabel(values.listingType)
+      : "";
+  const primaryTopic =
+    values.categoryFamily === "sports-cards" ? values.sport : values.game;
 
   return Array.from(
     new Set(
       [
         getListingCategoryLabel(values.categoryFamily),
         ...(sportsListingType ? [getListingTypeLabel(sportsListingType)] : []),
+        ...(!sportsListingType && listingTypeLabel ? [listingTypeLabel] : []),
         conditionLabel,
-        values.sport,
+        primaryTopic,
         values.manufacturer,
         ...values.dealMethods.map(getDealMethodLabel),
       ].filter(Boolean),
@@ -426,7 +476,8 @@ function validateValues(values: CreateListingFormValues, mediaFiles: File[]) {
   }
 
   if (
-    values.listingType === "trading-card-singles" &&
+    values.listingType &&
+    isSingleCardListingType(values.listingType) &&
     values.conditionType === "ungraded" &&
     !values.cardCondition
   ) {
@@ -434,7 +485,8 @@ function validateValues(values: CreateListingFormValues, mediaFiles: File[]) {
   }
 
   if (
-    values.listingType === "trading-card-singles" &&
+    values.listingType &&
+    isSingleCardListingType(values.listingType) &&
     values.conditionType === "graded"
   ) {
     if (!values.professionalGrader) {
@@ -496,9 +548,17 @@ export async function createListingAction(
     values.listingType,
   );
   const categoryLabel = getListingCategoryLabel(values.categoryFamily);
+  const listingTypeLabel =
+    values.listingType &&
+    ((values.categoryFamily === "sports-cards" &&
+      isSportsCardListingType(values.listingType)) ||
+      (values.categoryFamily === "collectible-card-game" &&
+        isCollectibleCardGameListingType(values.listingType)))
+      ? getListingTypeLabel(values.listingType)
+      : undefined;
   const sportsListingType = getSportsListingType(values);
   const specifics =
-    values.categoryFamily === "sports-cards"
+    specificFieldConfig.required.length > 0 || specificFieldConfig.optional.length > 0
       ? buildSpecificEntries(values, [
           ...specificFieldConfig.required,
           ...specificFieldConfig.optional,
@@ -519,17 +579,20 @@ export async function createListingAction(
       userId: session.user.id,
       title: values.title,
       subtitle: buildSubtitle(values),
-      franchise: values.categoryFamily === "sports-cards" ? "Sports" : "TCG",
+      franchise:
+        values.categoryFamily === "sports-cards"
+          ? "Sports"
+          : values.franchise || values.game || "TCG",
       setName:
         values.categoryFamily === "sports-cards"
           ? values.setName ||
             values.manufacturer ||
             (sportsListingType ? getListingTypeLabel(sportsListingType) : categoryLabel)
-          : categoryLabel,
+          : values.setName || values.game || categoryLabel,
       cardNumber:
         values.categoryFamily === "sports-cards"
           ? values.cardNumber || values.upc || ""
-          : values.upc || "",
+          : values.cardNumber || values.upc || "",
       price: parsedPrice ?? 0,
       tradeValue: parsedPrice ?? 0,
       location: cityLabel,
@@ -544,9 +607,7 @@ export async function createListingAction(
       wants: [],
       dealType: "buy-only",
       listingCategory: categoryLabel,
-      listingType: sportsListingType
-        ? getListingTypeLabel(sportsListingType)
-        : undefined,
+      listingType: listingTypeLabel,
       mediaUrls: storedMediaUrls,
       specifics,
       conditionDetails,

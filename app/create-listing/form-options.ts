@@ -7,7 +7,7 @@ export const listingCategoryOptions = [
   {
     value: "collectible-card-game",
     label: "Collectible Card Game",
-    description: "Use the core fields while category-specific details are still being finalized.",
+    description: "Structured CCG listing fields are available now.",
   },
 ] as const;
 
@@ -36,6 +36,29 @@ export const sportsCardListingTypeOptions = [
     value: "sealed-trading-card-packs",
     label: "Sealed Trading Card Packs",
     description: "Post loose or graded packs with pack-level specifics.",
+  },
+] as const;
+
+export const collectibleCardGameListingTypeOptions = [
+  {
+    value: "ccg-individual-cards",
+    label: "CCG Individual Cards",
+    description: "List single raw or graded cards with game-specific details.",
+  },
+  {
+    value: "ccg-sealed-boxes",
+    label: "CCG Sealed Boxes",
+    description: "Post sealed boxes with set and configuration info.",
+  },
+  {
+    value: "ccg-sealed-cases",
+    label: "CCG Sealed Cases",
+    description: "Share sealed cases with counts and product specifics.",
+  },
+  {
+    value: "ccg-sealed-packs",
+    label: "CCG Sealed Packs",
+    description: "List sealed or graded packs with pack-level details.",
   },
 ] as const;
 
@@ -87,6 +110,13 @@ export const sportOptions = [
   { value: "Wrestling", label: "Wrestling" },
 ] as const;
 
+export const yesNoUnknownFieldOptions = [
+  { value: "", label: "Select an option" },
+  { value: "Yes", label: "Yes" },
+  { value: "No", label: "No" },
+  { value: "Unknown", label: "Unknown" },
+] as const;
+
 export const yesNoFieldOptions = [
   { value: "", label: "Select an option" },
   { value: "Yes", label: "Yes" },
@@ -117,8 +147,13 @@ export type ListingCategoryOption =
   (typeof listingCategoryOptions)[number]["value"];
 export type SportsCardListingTypeOption =
   (typeof sportsCardListingTypeOptions)[number]["value"];
-export type CreateListingListingTypeOption =
+export type CollectibleCardGameListingTypeOption =
+  (typeof collectibleCardGameListingTypeOptions)[number]["value"];
+export type ListingTypeOption =
   | SportsCardListingTypeOption
+  | CollectibleCardGameListingTypeOption;
+export type CreateListingListingTypeOption =
+  | ListingTypeOption
   | "";
 export type ListingConditionTypeOption =
   | (typeof singleConditionTypeOptions)[number]["value"]
@@ -150,6 +185,7 @@ export type CreateListingFormValues = {
   mediaFiles: string;
   title: string;
   sport: string;
+  game: string;
   upc: string;
   playerAthlete: string;
   season: string;
@@ -159,6 +195,15 @@ export type CreateListingFormValues = {
   setName: string;
   team: string;
   league: string;
+  cardType: string;
+  specialty: string;
+  cardState: string;
+  character: string;
+  ageLevel: string;
+  rarity: string;
+  finish: string;
+  attributeColor: string;
+  creatureMonsterType: string;
   autographed: string;
   signedBy: string;
   autographAuthentication: string;
@@ -173,12 +218,20 @@ export type CreateListingFormValues = {
   material: string;
   vintage: string;
   eventTournament: string;
+  conventionEvent: string;
   language: string;
   originalLicensedReprint: string;
   cardThickness: string;
   customized: string;
   insertSet: string;
   printRun: string;
+  illustrator: string;
+  hp: string;
+  attackPower: string;
+  defenseToughness: string;
+  cost: string;
+  franchise: string;
+  featuredPersonArtist: string;
   numberOfCards: string;
   configuration: string;
   numberOfBoxes: string;
@@ -214,6 +267,11 @@ export const listingSpecificFieldDefinitions = {
     label: "Sport",
     kind: "select",
     options: sportOptions,
+  },
+  game: {
+    name: "game",
+    label: "Game",
+    placeholder: "Pokemon TCG",
   },
   upc: {
     name: "upc",
@@ -260,6 +318,36 @@ export const listingSpecificFieldDefinitions = {
     label: "League",
     placeholder: "NBA",
   },
+  cardType: {
+    name: "cardType",
+    label: "Card Type",
+    placeholder: "Character, Item, Spell",
+  },
+  specialty: {
+    name: "specialty",
+    label: "Specialty",
+    placeholder: "Alternate art",
+  },
+  cardState: {
+    name: "cardState",
+    label: "State",
+    placeholder: "1st edition",
+  },
+  character: {
+    name: "character",
+    label: "Character",
+    placeholder: "Monkey D. Luffy",
+  },
+  ageLevel: {
+    name: "ageLevel",
+    label: "Age Level",
+    placeholder: "13+",
+  },
+  rarity: {
+    name: "rarity",
+    label: "Rarity",
+    placeholder: "Super Rare",
+  },
   autographed: {
     name: "autographed",
     label: "Autographed",
@@ -273,7 +361,7 @@ export const listingSpecificFieldDefinitions = {
   },
   autographAuthentication: {
     name: "autographAuthentication",
-    label: "Autographed Authentication",
+    label: "Autograph Authentication",
     placeholder: "Panini Authentic",
   },
   autographAuthenticationNumber: {
@@ -321,6 +409,21 @@ export const listingSpecificFieldDefinitions = {
     label: "Material",
     placeholder: "Card stock",
   },
+  finish: {
+    name: "finish",
+    label: "Finish",
+    placeholder: "Holo",
+  },
+  attributeColor: {
+    name: "attributeColor",
+    label: "Attribute/MTC: Color",
+    placeholder: "Blue",
+  },
+  creatureMonsterType: {
+    name: "creatureMonsterType",
+    label: "Creature/Monster Type",
+    placeholder: "Dragon",
+  },
   vintage: {
     name: "vintage",
     label: "Vintage",
@@ -331,6 +434,11 @@ export const listingSpecificFieldDefinitions = {
     name: "eventTournament",
     label: "Event/Tournament",
     placeholder: "NBA Finals",
+  },
+  conventionEvent: {
+    name: "conventionEvent",
+    label: "Convention/Event",
+    placeholder: "Gen Con 2025",
   },
   language: {
     name: "language",
@@ -362,6 +470,41 @@ export const listingSpecificFieldDefinitions = {
     name: "printRun",
     label: "Print Run",
     placeholder: "49",
+  },
+  illustrator: {
+    name: "illustrator",
+    label: "Illustrator",
+    placeholder: "Mitsuhiro Arita",
+  },
+  hp: {
+    name: "hp",
+    label: "HP",
+    placeholder: "120",
+  },
+  attackPower: {
+    name: "attackPower",
+    label: "Attack/Power",
+    placeholder: "1500",
+  },
+  defenseToughness: {
+    name: "defenseToughness",
+    label: "Defense/Toughness",
+    placeholder: "2000",
+  },
+  cost: {
+    name: "cost",
+    label: "Cost",
+    placeholder: "3",
+  },
+  franchise: {
+    name: "franchise",
+    label: "Franchise",
+    placeholder: "One Piece",
+  },
+  featuredPersonArtist: {
+    name: "featuredPersonArtist",
+    label: "Featured Person/Artist",
+    placeholder: "Eiichiro Oda",
   },
   numberOfCards: {
     name: "numberOfCards",
@@ -419,7 +562,7 @@ type ListingTypeFieldConfig = {
   optional: readonly ListingSpecificFieldName[];
 };
 
-export const listingTypeFieldConfig = {
+export const sportsCardListingTypeFieldConfig = {
   "trading-card-singles": {
     required: ["sport"],
     optional: [
@@ -576,12 +719,145 @@ export const listingTypeFieldConfig = {
   },
 } as const satisfies Record<SportsCardListingTypeOption, ListingTypeFieldConfig>;
 
+export const collectibleCardGameListingTypeFieldConfig = {
+  "ccg-individual-cards": {
+    required: ["game"],
+    optional: [
+      "upc",
+      "cardType",
+      "specialty",
+      "cardState",
+      "setName",
+      "cardName",
+      "character",
+      "ageLevel",
+      "rarity",
+      "features",
+      "manufacturer",
+      "finish",
+      "attributeColor",
+      "creatureMonsterType",
+      "cardNumber",
+      "autographed",
+      "autographAuthentication",
+      "autographAuthenticationNumber",
+      "autographFormat",
+      "signedBy",
+      "language",
+      "yearManufactured",
+      "countryOfOrigin",
+      "vintage",
+      "material",
+      "cardSize",
+      "illustrator",
+      "hp",
+      "attackPower",
+      "defenseToughness",
+      "cost",
+      "conventionEvent",
+      "customized",
+      "franchise",
+    ],
+  },
+  "ccg-sealed-boxes": {
+    required: ["game", "setName"],
+    optional: [
+      "upc",
+      "features",
+      "character",
+      "language",
+      "manufacturer",
+      "cardSize",
+      "yearManufactured",
+      "ageLevel",
+      "configuration",
+      "numberOfCards",
+      "numberOfBoxes",
+      "countryOfOrigin",
+      "conventionEvent",
+      "vintage",
+      "autographed",
+      "signedBy",
+      "autographAuthentication",
+      "autographAuthenticationNumber",
+      "autographFormat",
+      "material",
+      "featuredPersonArtist",
+      "mpn",
+      "illustrator",
+    ],
+  },
+  "ccg-sealed-cases": {
+    required: ["game", "setName"],
+    optional: [
+      "upc",
+      "manufacturer",
+      "configuration",
+      "numberOfCards",
+      "numberOfCases",
+      "features",
+      "language",
+      "character",
+      "yearManufactured",
+      "ageLevel",
+      "cardSize",
+      "countryOfOrigin",
+      "material",
+      "vintage",
+      "autographed",
+      "autographAuthentication",
+      "autographAuthenticationNumber",
+      "autographFormat",
+      "signedBy",
+      "conventionEvent",
+      "mpn",
+      "illustrator",
+      "featuredPersonArtist",
+    ],
+  },
+  "ccg-sealed-packs": {
+    required: ["game", "setName"],
+    optional: [
+      "upc",
+      "features",
+      "character",
+      "grade",
+      "professionalGrader",
+      "certificationNumber",
+      "language",
+      "manufacturer",
+      "yearManufactured",
+      "ageLevel",
+      "cardSize",
+      "configuration",
+      "numberOfCards",
+      "numberOfPacks",
+      "countryOfOrigin",
+      "vintage",
+      "material",
+      "conventionEvent",
+      "autographed",
+      "autographAuthentication",
+      "autographAuthenticationNumber",
+      "signedBy",
+      "autographFormat",
+      "featuredPersonArtist",
+      "mpn",
+      "illustrator",
+    ],
+  },
+} as const satisfies Record<
+  CollectibleCardGameListingTypeOption,
+  ListingTypeFieldConfig
+>;
+
 export const initialCreateListingValues: CreateListingFormValues = {
   categoryFamily: "sports-cards",
   listingType: "trading-card-singles",
   mediaFiles: "",
   title: "",
   sport: "",
+  game: "",
   upc: "",
   playerAthlete: "",
   season: "",
@@ -591,6 +867,15 @@ export const initialCreateListingValues: CreateListingFormValues = {
   setName: "",
   team: "",
   league: "",
+  cardType: "",
+  specialty: "",
+  cardState: "",
+  character: "",
+  ageLevel: "",
+  rarity: "",
+  finish: "",
+  attributeColor: "",
+  creatureMonsterType: "",
   autographed: "",
   signedBy: "",
   autographAuthentication: "",
@@ -605,12 +890,20 @@ export const initialCreateListingValues: CreateListingFormValues = {
   material: "",
   vintage: "",
   eventTournament: "",
+  conventionEvent: "",
   language: "",
   originalLicensedReprint: "",
   cardThickness: "",
   customized: "",
   insertSet: "",
   printRun: "",
+  illustrator: "",
+  hp: "",
+  attackPower: "",
+  defenseToughness: "",
+  cost: "",
+  franchise: "",
+  featuredPersonArtist: "",
   numberOfCards: "",
   configuration: "",
   numberOfBoxes: "",
@@ -644,6 +937,14 @@ export function isSportsCardListingType(
   return sportsCardListingTypeOptions.some((option) => option.value === value);
 }
 
+export function isCollectibleCardGameListingType(
+  value: string,
+): value is CollectibleCardGameListingTypeOption {
+  return collectibleCardGameListingTypeOptions.some(
+    (option) => option.value === value,
+  );
+}
+
 export function isListingConditionType(
   value: string,
 ): value is ListingConditionTypeOption {
@@ -670,9 +971,12 @@ export function isProfessionalGrader(
   return professionalGraderOptions.some((option) => option.value === value);
 }
 
-export function getListingTypeLabel(value: SportsCardListingTypeOption) {
+export function getListingTypeLabel(value: ListingTypeOption) {
   return (
-    sportsCardListingTypeOptions.find((option) => option.value === value)?.label ??
+    [
+      ...sportsCardListingTypeOptions,
+      ...collectibleCardGameListingTypeOptions,
+    ].find((option) => option.value === value)?.label ??
     "Listing"
   );
 }
@@ -684,18 +988,52 @@ export function getListingCategoryLabel(value: ListingCategoryOption) {
   );
 }
 
+export function getListingTypeOptionsForCategory(
+  categoryFamily: ListingCategoryOption,
+) {
+  if (categoryFamily === "sports-cards") {
+    return sportsCardListingTypeOptions;
+  }
+
+  if (categoryFamily === "collectible-card-game") {
+    return collectibleCardGameListingTypeOptions;
+  }
+
+  return [] as const;
+}
+
+export function getDefaultListingTypeForCategory(
+  categoryFamily: ListingCategoryOption,
+): CreateListingListingTypeOption {
+  return getListingTypeOptionsForCategory(categoryFamily)[0]?.value ?? "";
+}
+
+export function isSingleCardListingType(listingType: ListingTypeOption) {
+  return (
+    listingType === "trading-card-singles" ||
+    listingType === "ccg-individual-cards"
+  );
+}
+
+export function isSealedListingType(listingType: ListingTypeOption) {
+  return (
+    listingType === "sealed-trading-card-boxes" ||
+    listingType === "sealed-trading-card-cases" ||
+    listingType === "sealed-trading-card-packs" ||
+    listingType === "ccg-sealed-boxes" ||
+    listingType === "ccg-sealed-cases" ||
+    listingType === "ccg-sealed-packs"
+  );
+}
+
 export function getConditionOptionsForListingType(
-  listingType: SportsCardListingTypeOption,
+  listingType: ListingTypeOption,
 ) {
   if (listingType === "trading-card-set") {
     return setConditionTypeOptions;
   }
 
-  if (
-    listingType === "sealed-trading-card-boxes" ||
-    listingType === "sealed-trading-card-cases" ||
-    listingType === "sealed-trading-card-packs"
-  ) {
+  if (isSealedListingType(listingType)) {
     return sealedConditionTypeOptions;
   }
 
@@ -703,7 +1041,7 @@ export function getConditionOptionsForListingType(
 }
 
 export function getDefaultConditionTypeForListingType(
-  listingType: SportsCardListingTypeOption,
+  listingType: ListingTypeOption,
 ) {
   return getConditionOptionsForListingType(listingType)[0].value;
 }
@@ -713,8 +1051,9 @@ export function getConditionOptionsForCategory(
   listingType: CreateListingListingTypeOption,
 ) {
   if (
-    categoryFamily === "sports-cards" &&
-    isSportsCardListingType(listingType)
+    (categoryFamily === "sports-cards" && isSportsCardListingType(listingType)) ||
+    (categoryFamily === "collectible-card-game" &&
+      isCollectibleCardGameListingType(listingType))
   ) {
     return getConditionOptionsForListingType(listingType);
   }
@@ -753,10 +1092,12 @@ export function getCityLabel(value: ListingCityOption) {
   );
 }
 
-export function getSpecificFieldConfigForListingType(
-  listingType: SportsCardListingTypeOption,
-) {
-  return listingTypeFieldConfig[listingType];
+export function getSpecificFieldConfigForListingType(listingType: ListingTypeOption) {
+  if (isSportsCardListingType(listingType)) {
+    return sportsCardListingTypeFieldConfig[listingType];
+  }
+
+  return collectibleCardGameListingTypeFieldConfig[listingType];
 }
 
 export function getSpecificFieldConfigForCategory(
@@ -764,8 +1105,9 @@ export function getSpecificFieldConfigForCategory(
   listingType: CreateListingListingTypeOption,
 ) {
   if (
-    categoryFamily === "sports-cards" &&
-    isSportsCardListingType(listingType)
+    (categoryFamily === "sports-cards" && isSportsCardListingType(listingType)) ||
+    (categoryFamily === "collectible-card-game" &&
+      isCollectibleCardGameListingType(listingType))
   ) {
     return getSpecificFieldConfigForListingType(listingType);
   }
