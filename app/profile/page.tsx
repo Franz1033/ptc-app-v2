@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SignOutButton } from "@/app/components/auth/sign-out-button";
 import { SectionHeading } from "@/app/components/marketplace/section-heading";
 import { SiteHeader } from "@/app/components/marketplace/site-header";
 import { requireSession } from "@/lib/auth-session";
@@ -42,6 +43,7 @@ export default async function ProfilePage() {
               eyebrow="Profile"
               title={session.user.name ?? "Your profile"}
               description={session.user.email}
+              action={<SignOutButton />}
             />
 
             <div className="mt-10 grid gap-8 border-t border-slate-200 pt-8 sm:grid-cols-3">

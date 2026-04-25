@@ -11,6 +11,7 @@ import {
   type ListingCategory,
 } from "@/app/lib/marketplace-data";
 import type { ListingCityOption } from "@/app/create-listing/form-options";
+import { deleteListingMediaFiles } from "@/lib/listing-media";
 import { getPrismaClient } from "@/lib/prisma";
 
 const marketplaceListingInclude = {
@@ -39,6 +40,7 @@ const legacyMarketplaceListingSelect = {
   wants: true,
   dealType: true,
   createdAt: true,
+  userId: true,
   user: true,
 } as const;
 
@@ -280,12 +282,14 @@ function mapStoredListing(record: AnyStoredMarketplaceListing): Listing {
       ? record.city
       : "new-york";
   const hasStructuredFields = hasStructuredListingFields(record);
+  const mediaUrls = hasStructuredFields ? record.mediaUrls : undefined;
+  const thumbnailSrc = mediaUrls?.[0] || brandPresentation.imageSrc;
 
   return {
     slug: record.slug,
     title: record.title,
     subtitle: record.subtitle,
-    imageSrc: brandPresentation.imageSrc,
+    imageSrc: thumbnailSrc,
     franchise: record.franchise,
     set: record.setName,
     cardNumber: record.cardNumber,
@@ -313,7 +317,7 @@ function mapStoredListing(record: AnyStoredMarketplaceListing): Listing {
       ? record.listingCategory ?? undefined
       : undefined,
     listingType: hasStructuredFields ? record.listingType ?? undefined : undefined,
-    mediaUrls: hasStructuredFields ? record.mediaUrls : undefined,
+    mediaUrls,
     specifics: hasStructuredFields
       ? parseDetailEntries(record.specifics)
       : undefined,
@@ -321,6 +325,7 @@ function mapStoredListing(record: AnyStoredMarketplaceListing): Listing {
       ? parseDetailEntries(record.conditionDetails)
       : undefined,
     dealMethods: hasStructuredFields ? record.dealMethods : undefined,
+    ownerUserId: record.userId,
     seller: {
       name: sellerName,
       badge: "PTC marketplace seller",
@@ -363,6 +368,37 @@ async function buildUniqueSlug(title: string, cardNumber: string) {
     candidate = `${seed}-${suffix}`;
     suffix += 1;
   }
+}
+
+export async function deleteStoredMarketplaceListingForOwner(
+  slug: string,
+  ownerUserId: string,
+) {
+  if (!hasDatabaseConfig()) {
+    return false;
+  }
+
+  const prisma = getPrismaClient();
+  const listing = await prisma.marketplaceListing.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      userId: true,
+      mediaUrls: true,
+    },
+  });
+
+  if (!listing || listing.userId !== ownerUserId) {
+    return false;
+  }
+
+  await prisma.marketplaceListing.delete({
+    where: { id: listing.id },
+  });
+
+  await deleteListingMediaFiles(listing.mediaUrls);
+
+  return true;
 }
 
 export async function getMarketplaceListings() {

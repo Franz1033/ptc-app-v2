@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  type CreateListingCityOption,
   type CreateListingFieldErrors,
   type CreateListingFormState,
   type CreateListingFormValues,
@@ -511,6 +512,10 @@ function validateValues(values: CreateListingFormValues, mediaFiles: File[]) {
     fieldErrors.price = "Add a valid price.";
   }
 
+  if (!isListingCity(values.city)) {
+    fieldErrors.city = "Choose a U.S. city from the suggestions.";
+  }
+
   if (values.dealMethods.length === 0) {
     fieldErrors.dealMethods = "Choose at least one deal method.";
   }
@@ -534,6 +539,10 @@ export async function createListingAction(
   const { fieldErrors, parsedPrice } = validateValues(values, mediaFiles);
 
   if (Object.keys(fieldErrors).length > 0) {
+    if (process.env.NODE_ENV !== "production") {
+      console.info("Create listing validation failed", fieldErrors);
+    }
+
     return {
       message: "Check the highlighted fields and try again.",
       fieldErrors,
@@ -541,7 +550,18 @@ export async function createListingAction(
     };
   }
 
+  if (!isListingCity(values.city)) {
+    return {
+      message: "Check the highlighted fields and try again.",
+      fieldErrors: {
+        city: "Choose a U.S. city from the suggestions.",
+      },
+      values,
+    };
+  }
+
   const session = await requireSession("/create-listing");
+  const listingCity: CreateListingCityOption = values.city;
   const { condition, grade } = buildConditionSummary(values);
   const specificFieldConfig = getSpecificFieldConfigForCategory(
     values.categoryFamily,
@@ -567,7 +587,7 @@ export async function createListingAction(
   const conditionDetails = buildConditionEntries(values);
   const defaultTags = buildDefaultTags(values, condition);
   const shippingSummary = buildShippingSummary(values);
-  const cityLabel = getCityLabel(values.city);
+  const cityLabel = getCityLabel(listingCity);
   let storedMediaUrls: string[] = [];
 
   let redirectPath = "";
@@ -596,7 +616,7 @@ export async function createListingAction(
       price: parsedPrice ?? 0,
       tradeValue: parsedPrice ?? 0,
       location: cityLabel,
-      city: values.city,
+      city: listingCity,
       condition,
       grade,
       rarity: buildRaritySummary(values),

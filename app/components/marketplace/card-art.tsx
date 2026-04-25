@@ -10,7 +10,7 @@ type CardArtProps = {
 export function CardArt({ listing, compact = false }: CardArtProps) {
   return (
     <div
-      className="relative aspect-[4/3] overflow-hidden rounded-[22px] border border-slate-200 bg-slate-100 shadow-[0_8px_24px_rgba(15,23,42,0.05)]"
+      className="relative aspect-[4/3] overflow-hidden rounded-[22px] border border-slate-200 bg-slate-50 shadow-[0_8px_24px_rgba(15,23,42,0.05)]"
     >
       <Image
         src={listing.imageSrc}
@@ -21,7 +21,7 @@ export function CardArt({ listing, compact = false }: CardArtProps) {
             ? "(min-width: 1280px) 24vw, (min-width: 768px) 40vw, 100vw"
             : "(min-width: 1024px) 42vw, 100vw"
         }
-        className="object-cover"
+        className="object-contain p-3"
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(15,23,42,0.08))]" />
       <div className="absolute left-3 bottom-3">

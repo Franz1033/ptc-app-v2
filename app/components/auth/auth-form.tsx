@@ -15,10 +15,50 @@ type AuthFormProps = {
   nextPath?: string;
 };
 
+type PasswordVisibilityIconProps = {
+  isVisible: boolean;
+};
+
+function PasswordVisibilityIcon({
+  isVisible,
+}: PasswordVisibilityIconProps) {
+  return isVisible ? (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    >
+      <path d="M2.75 12S6.5 5.75 12 5.75 21.25 12 21.25 12 17.5 18.25 12 18.25 2.75 12 2.75 12Z" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M4 4l16 16" />
+    </svg>
+  ) : (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    >
+      <path d="M2.75 12S6.5 5.75 12 5.75 21.25 12 21.25 12 17.5 18.25 12 18.25 2.75 12 2.75 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
 export function AuthForm({ mode, nextPath }: AuthFormProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isGooglePending, setIsGooglePending] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isSignUp = mode === "sign-up";
 
@@ -93,6 +133,14 @@ export function AuthForm({ mode, nextPath }: AuthFormProps) {
         >
           {formTitle}
         </h2>
+        <div className="mt-3">
+          <Link
+            href="/"
+            className="text-sm font-medium text-slate-500 transition hover:text-slate-950"
+          >
+            Go home
+          </Link>
+        </div>
       </div>
 
       <div className="flex justify-center">
@@ -155,15 +203,30 @@ export function AuthForm({ mode, nextPath }: AuthFormProps) {
               <span className="text-[11px] text-slate-400">
                 Use 8 or more characters
               </span>
-            ) : null}
+            ) : (
+              <span className="text-[11px] font-medium text-slate-500">
+                Forgot password
+              </span>
+            )}
           </div>
-          <input
-            name="password"
-            type="password"
-            autoComplete={isSignUp ? "new-password" : "current-password"}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[15px] text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
-            placeholder={isSignUp ? "Create a password" : "Enter your password"}
-          />
+          <div className="relative mt-1.5">
+            <input
+              name="password"
+              type={isPasswordVisible ? "text" : "password"}
+              autoComplete={isSignUp ? "new-password" : "current-password"}
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-12 text-[15px] text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
+              placeholder={isSignUp ? "Create a password" : "Enter your password"}
+            />
+            <button
+              type="button"
+              onClick={() => setIsPasswordVisible((current) => !current)}
+              className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-slate-400 transition hover:text-slate-600 focus:text-slate-600 focus:outline-none"
+              aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+              aria-pressed={isPasswordVisible}
+            >
+              <PasswordVisibilityIcon isVisible={isPasswordVisible} />
+            </button>
+          </div>
         </label>
 
         {error ? (

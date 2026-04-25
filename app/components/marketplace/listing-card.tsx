@@ -15,13 +15,13 @@ export function ListingCard({ listing }: ListingCardProps) {
       href={`/listing/${listing.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_14px_32px_rgba(15,23,42,0.08)]"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-50">
         <Image
           src={listing.imageSrc}
           alt={listing.title}
           fill
           sizes="(min-width: 1280px) 24vw, (min-width: 768px) 40vw, 100vw"
-          className="object-cover transition duration-500 group-hover:scale-[1.02]"
+          className="object-contain p-2 transition duration-500 group-hover:scale-[1.02]"
         />
       </div>
 

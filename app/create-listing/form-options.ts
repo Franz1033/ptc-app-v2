@@ -1,3 +1,5 @@
+import { cityFilters, type CityFilter } from "@/app/lib/marketplace-data";
+
 export const listingCategoryOptions = [
   {
     value: "sports-cards",
@@ -90,13 +92,24 @@ export const listingDealMethodOptions = [
   },
 ] as const;
 
-export const listingCityOptions = [
-  { value: "new-york", label: "New York, NY" },
-  { value: "jersey-city", label: "Jersey City, NJ" },
-  { value: "chicago", label: "Chicago, IL" },
-  { value: "austin", label: "Austin, TX" },
-  { value: "los-angeles", label: "Los Angeles, CA" },
-] as const;
+export const listingCityOptions = cityFilters
+  .filter(
+    (
+      city,
+    ): city is {
+      slug: Exclude<CityFilter, "all">;
+      label: string;
+    } => city.slug !== "all",
+  )
+  .map((city) => ({
+    value: city.slug,
+    label: city.label,
+  }));
+
+export const listingCityFieldOptions = [
+  { value: "", label: "Select a city" },
+  ...listingCityOptions,
+];
 
 export const sportOptions = [
   { value: "", label: "Select a sport" },
@@ -161,7 +174,8 @@ export type ListingConditionTypeOption =
   | (typeof sealedConditionTypeOptions)[number]["value"];
 export type ListingDealMethodOption =
   (typeof listingDealMethodOptions)[number]["value"];
-export type ListingCityOption = (typeof listingCityOptions)[number]["value"];
+export type ListingCityOption = Exclude<CityFilter, "all">;
+export type CreateListingCityOption = ListingCityOption | "";
 export type ProfessionalGraderOption =
   (typeof professionalGraderOptions)[number]["value"];
 
@@ -246,7 +260,7 @@ export type CreateListingFormValues = {
   description: string;
   price: string;
   dealMethods: ListingDealMethodOption[];
-  city: ListingCityOption;
+  city: CreateListingCityOption;
   meetupLocation: string;
   deliveryDetails: string;
 };
@@ -918,7 +932,7 @@ export const initialCreateListingValues: CreateListingFormValues = {
   description: "",
   price: "",
   dealMethods: ["meet-up"],
-  city: "new-york",
+  city: "",
   meetupLocation: "",
   deliveryDetails: "",
 };

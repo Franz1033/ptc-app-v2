@@ -4,9 +4,11 @@ import { randomUUID } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-export const MAX_LISTING_MEDIA_FILES = 8;
-export const MAX_LISTING_MEDIA_FILE_SIZE_BYTES = 20 * 1024 * 1024;
-export const MAX_LISTING_MEDIA_TOTAL_SIZE_BYTES = 45 * 1024 * 1024;
+export {
+  MAX_LISTING_MEDIA_FILES,
+  MAX_LISTING_MEDIA_FILE_SIZE_BYTES,
+  MAX_LISTING_MEDIA_TOTAL_SIZE_BYTES,
+} from "@/lib/listing-media-constants";
 
 const listingMediaUploadDirectory = path.join(
   process.cwd(),

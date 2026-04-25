@@ -8,10 +8,12 @@ import { CardArt } from "@/app/components/marketplace/card-art";
 import { ListingCard } from "@/app/components/marketplace/listing-card";
 import { SectionHeading } from "@/app/components/marketplace/section-heading";
 import { SiteHeader } from "@/app/components/marketplace/site-header";
+import { deleteListingAction } from "@/app/listing/[slug]/actions";
 import {
   formatCurrency,
   listings,
 } from "@/app/lib/marketplace-data";
+import { getSession } from "@/lib/auth-session";
 import {
   getMarketplaceListingBySlug,
   getRelatedMarketplaceListings,
@@ -62,6 +64,9 @@ export default async function ListingPage({ params }: ListingPageProps) {
   }
 
   const relatedListings = await getRelatedMarketplaceListings(slug);
+  const session = await getSession();
+  const isListingOwner =
+    Boolean(listing.ownerUserId) && listing.ownerUserId === session?.user.id;
   const mediaLinks = listing.mediaUrls ?? [];
   const categoryLabel = [listing.listingCategory, listing.listingType]
     .filter(Boolean)
@@ -206,7 +211,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                       key={mediaLink}
                       className="group overflow-hidden rounded-[22px] border border-slate-200 bg-white transition hover:border-emerald-200"
                     >
-                      <div className="relative aspect-[4/3] bg-slate-100">
+                      <div className="relative aspect-[4/3] bg-slate-50">
                         {isVideoMediaPath(mediaLink) ? (
                           <video
                             controls
@@ -222,7 +227,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                             alt={`${listing.title} media ${index + 1}`}
                             fill
                             sizes="(min-width: 1024px) 20vw, (min-width: 640px) 40vw, 100vw"
-                            className="object-cover transition duration-300 group-hover:scale-[1.02]"
+                            className="object-contain p-3 transition duration-300 group-hover:scale-[1.02]"
                           />
                         )}
                       </div>
@@ -306,12 +311,14 @@ export default async function ListingPage({ params }: ListingPageProps) {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="rounded-full bg-emerald-800 px-5 py-3 font-medium text-white transition hover:bg-emerald-700"
-              >
-                Message seller
-              </button>
+              {!isListingOwner ? (
+                <button
+                  type="button"
+                  className="rounded-full bg-emerald-800 px-5 py-3 font-medium text-white transition hover:bg-emerald-700"
+                >
+                  Message seller
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 font-medium text-emerald-800 transition hover:bg-emerald-100"
@@ -324,6 +331,16 @@ export default async function ListingPage({ params }: ListingPageProps) {
               >
                 Share listing
               </button>
+              {isListingOwner ? (
+                <form action={deleteListingAction.bind(null, listing.slug)}>
+                  <button
+                    type="submit"
+                    className="rounded-full border border-rose-200 bg-rose-50 px-5 py-3 font-medium text-rose-700 transition hover:bg-rose-100 hover:text-rose-800"
+                  >
+                    Delete listing
+                  </button>
+                </form>
+              ) : null}
             </div>
 
             <div className="mt-10 grid gap-8 border-t border-slate-200 pt-8 sm:grid-cols-2">

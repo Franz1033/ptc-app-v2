@@ -6,8 +6,11 @@ import { useFormStatus } from "react-dom";
 import Image from "next/image";
 
 import { createListingAction } from "@/app/create-listing/actions";
+import { getSameCityFilter } from "@/app/lib/marketplace-data";
+import { MAX_LISTING_MEDIA_FILES } from "@/lib/listing-media-constants";
 import {
   cardConditionOptions,
+  type CreateListingCityOption,
   type CreateListingFormValues,
   getConditionOptionsForCategory,
   getDefaultConditionTypeForCategory,
@@ -18,12 +21,14 @@ import {
   initialCreateListingValues,
   isCollectibleCardGameListingType,
   isListingCategory,
+  isListingCity,
   isListingConditionType,
   isListingDealMethod,
   isSingleCardListingType,
   isProfessionalGrader,
   isSportsCardListingType,
   listingCategoryOptions,
+  listingCityOptions,
   listingDealMethodOptions,
   listingSpecificFieldDefinitions,
   type CreateListingFieldDefinition,
@@ -31,6 +36,7 @@ import {
   type ListingCategoryOption,
   type ListingConditionTypeOption,
   type ListingDealMethodOption,
+  type ListingCityOption,
   type ListingSpecificFieldName,
   type ListingTypeOption,
 } from "@/app/create-listing/form-options";
@@ -42,6 +48,9 @@ type ConfiguredFieldProps = {
   required?: boolean;
   disabled?: boolean;
   rows?: number;
+  selectValue?: string;
+  onSelectChange?: (nextValue: string) => void;
+  onValueChange?: () => void;
 };
 
 type MediaPreview = {
@@ -49,6 +58,13 @@ type MediaPreview = {
   name: string;
   url: string;
 };
+
+type LocationAssistState =
+  | {
+      tone: "neutral" | "error";
+      message: string;
+    }
+  | null;
 
 type DropdownOption = {
   value: string;
@@ -84,6 +100,28 @@ const createListingDraftStringFieldNames = Object.keys(
 
 const fieldClassName =
   "w-full rounded-[16px] border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-950 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100";
+const dropdownTriggerClassName =
+  "w-full rounded-[16px] border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-950 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:border-slate-300 focus:border-slate-300 focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:bg-slate-100";
+
+function getConfiguredSelectFieldValues(
+  values: CreateListingFormValues,
+): Record<string, string> {
+  return {
+    cardCondition: values.cardCondition,
+    ...Object.fromEntries(
+      Object.values(listingSpecificFieldDefinitions)
+        .filter(
+          (definition) => "kind" in definition && definition.kind === "select",
+        )
+        .map((definition) => [
+          definition.name,
+          String(
+            values[definition.name as keyof CreateListingFormValues] ?? "",
+          ),
+        ]),
+    ),
+  };
+}
 
 function FieldError({ message }: { message?: string }) {
   if (!message) {
@@ -93,8 +131,80 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-2 text-sm text-rose-600">{message}</p>;
 }
 
+function RequiredIndicator({ show = false }: { show?: boolean }) {
+  if (!show) {
+    return null;
+  }
+
+  return (
+    <>
+      <span aria-hidden="true" className="ml-1 text-rose-500">
+        *
+      </span>
+      <span className="sr-only"> required</span>
+    </>
+  );
+}
+
 function revokeMediaPreviews(previews: MediaPreview[]) {
   previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+}
+
+function getListingCityOptionLabel(value: CreateListingCityOption) {
+  if (!value) {
+    return "";
+  }
+
+  return (
+    listingCityOptions.find((option) => option.value === value)?.label ?? ""
+  );
+}
+
+function getMatchingListingCityOption(query: string) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return undefined;
+  }
+
+  return listingCityOptions.find((option) => {
+    const normalizedLabel = option.label.toLowerCase();
+    const normalizedCityName = normalizedLabel.split(",")[0]?.trim() ?? "";
+    const normalizedSlug = option.value.replaceAll("-", " ").toLowerCase();
+
+    return (
+      normalizedLabel === normalizedQuery ||
+      normalizedCityName === normalizedQuery ||
+      normalizedSlug === normalizedQuery
+    );
+  });
+}
+
+function getCreateListingFieldLabel(fieldName: keyof CreateListingFormValues) {
+  if (fieldName in listingSpecificFieldDefinitions) {
+    return listingSpecificFieldDefinitions[fieldName as ListingSpecificFieldName]
+      .label;
+  }
+
+  const labels: Partial<Record<keyof CreateListingFormValues, string>> = {
+    mediaFiles: "Photos",
+    categoryFamily: "Category",
+    listingType: "Listing type",
+    title: "Title",
+    conditionType: "Condition type",
+    cardCondition: "Card condition",
+    professionalGrader: "Professional grader",
+    grade: "Grade",
+    certificationNumber: "Certification number",
+    description: "Description",
+    price: "Price",
+    dealMethods: "Deal methods",
+    city: "Location",
+    meetupLocation: "Meet-up location",
+    deliveryDetails: "Delivery notes",
+  };
+
+  return labels[fieldName] ?? fieldName;
 }
 
 function FormDropdown({
@@ -116,6 +226,7 @@ function FormDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const selectedOption =
     options.find((option) => option.value === value) ?? options[0];
+  const hasSelection = Boolean(selectedOption?.value);
 
   useEffect(() => {
     if (!isOpen) {
@@ -156,18 +267,24 @@ function FormDropdown({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((currentOpen) => !currentOpen)}
-        className={`${fieldClassName} mt-2 flex items-center justify-between gap-3 text-left ${
-          isOpen ? "border-emerald-400 ring-4 ring-emerald-100" : ""
+        className={`${dropdownTriggerClassName} mt-2 flex items-center justify-between gap-3 text-left ${
+          isOpen ? "border-slate-300 ring-4 ring-slate-100" : ""
         }`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <span className="truncate">{selectedOption?.label ?? "Select an option"}</span>
+        <span
+          className={`truncate ${
+            hasSelection ? "text-slate-950" : "text-slate-400"
+          }`}
+        >
+          {selectedOption?.label ?? "Select an option"}
+        </span>
         <svg
           aria-hidden="true"
           viewBox="0 0 20 20"
-          className={`h-4 w-4 shrink-0 text-slate-500 transition duration-200 ${
-            isOpen ? "rotate-180 text-slate-700" : ""
+          className={`h-4 w-4 shrink-0 text-slate-400 transition duration-200 ${
+            isOpen ? "rotate-180 text-slate-500" : ""
           }`}
           fill="none"
         >
@@ -182,8 +299,8 @@ function FormDropdown({
       </button>
 
       {isOpen ? (
-        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-[16px] border border-slate-200 bg-white p-1.5 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
-          <div className="max-h-72 overflow-y-auto">
+        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-[20px] border border-slate-200/90 bg-white/95 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.16)] backdrop-blur-sm">
+          <div className="max-h-72 overflow-y-auto" role="listbox" aria-labelledby={id}>
             {options.map((option) => {
               const isSelected = option.value === value;
 
@@ -195,9 +312,9 @@ function FormDropdown({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`flex w-full items-center justify-between gap-3 rounded-[12px] px-3 py-2.5 text-left text-sm transition ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-[14px] px-3.5 py-3 text-left text-sm transition ${
                     isSelected
-                      ? "bg-emerald-50 text-slate-950"
+                      ? "bg-slate-50 text-slate-950 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.18)]"
                       : "text-slate-700 hover:bg-slate-50 hover:text-slate-950"
                   }`}
                   role="option"
@@ -208,7 +325,7 @@ function FormDropdown({
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 20 20"
-                      className="h-4 w-4 shrink-0 text-emerald-700"
+                      className="h-4 w-4 shrink-0 text-slate-700"
                       fill="none"
                     >
                       <path
@@ -223,6 +340,171 @@ function FormDropdown({
                 </button>
               );
             })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function FormCityAutocomplete({
+  id,
+  name,
+  value,
+  query,
+  onChange,
+  onQueryChange,
+  disabled,
+}: {
+  id: string;
+  name: string;
+  value: CreateListingCityOption;
+  query: string;
+  onChange: (nextValue: CreateListingCityOption) => void;
+  onQueryChange: (nextQuery: string) => void;
+  disabled?: boolean;
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredOptions = listingCityOptions
+    .filter((option) => {
+      if (!normalizedQuery) {
+        return true;
+      }
+
+      const normalizedLabel = option.label.toLowerCase();
+      const normalizedSlug = option.value.replaceAll("-", " ").toLowerCase();
+
+      return (
+        normalizedLabel.includes(normalizedQuery) ||
+        normalizedSlug.includes(normalizedQuery)
+      );
+    })
+    .sort((left, right) => {
+      if (!normalizedQuery) {
+        return 0;
+      }
+
+      const leftLabel = left.label.toLowerCase();
+      const rightLabel = right.label.toLowerCase();
+      const leftStartsWith = leftLabel.startsWith(normalizedQuery);
+      const rightStartsWith = rightLabel.startsWith(normalizedQuery);
+
+      if (leftStartsWith !== rightStartsWith) {
+        return leftStartsWith ? -1 : 1;
+      }
+
+      return left.label.localeCompare(right.label);
+    })
+    .slice(0, normalizedQuery ? 10 : 12);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        rootRef.current &&
+        event.target instanceof Node &&
+        !rootRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={rootRef} className="relative mt-2">
+      <input type="hidden" name={name} value={value} />
+
+      <input
+        id={id}
+        type="text"
+        value={query}
+        disabled={disabled}
+        autoComplete="off"
+        placeholder="Search a U.S. city"
+        className={fieldClassName}
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={isOpen}
+        aria-controls={`${id}-listbox`}
+        onFocus={() => setIsOpen(true)}
+        onChange={(event) => {
+          onQueryChange(event.target.value);
+          setIsOpen(true);
+        }}
+      />
+
+      {isOpen ? (
+        <div className="absolute left-0 right-0 z-30 mt-2 overflow-hidden rounded-[20px] border border-slate-200/90 bg-white/95 p-2 shadow-[0_24px_48px_rgba(15,23,42,0.16)] backdrop-blur-sm">
+          <div
+            id={`${id}-listbox`}
+            role="listbox"
+            className="max-h-72 overflow-y-auto"
+          >
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => {
+                const isSelected = option.value === value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      onChange(option.value);
+                      onQueryChange(option.label);
+                      setIsOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between gap-3 rounded-[14px] px-3.5 py-3 text-left text-sm transition ${
+                      isSelected
+                        ? "bg-slate-50 text-slate-950 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.18)]"
+                        : "text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                    }`}
+                  >
+                    <span>{option.label}</span>
+                    {isSelected ? (
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 20 20"
+                        className="h-4 w-4 shrink-0 text-slate-700"
+                        fill="none"
+                      >
+                        <path
+                          d="M5.75 10.25L8.5 13L14.25 7.25"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : null}
+                  </button>
+                );
+              })
+            ) : (
+              <p className="px-3.5 py-3 text-sm text-slate-500">
+                No U.S. city matches that search.
+              </p>
+            )}
           </div>
         </div>
       ) : null}
@@ -261,6 +543,9 @@ function ConfiguredField({
   required,
   disabled,
   rows = 4,
+  selectValue,
+  onSelectChange,
+  onValueChange,
 }: ConfiguredFieldProps) {
   const { label, name, placeholder, kind = "input", options } = definition;
 
@@ -268,6 +553,7 @@ function ConfiguredField({
     <div>
       <label htmlFor={name} className="text-sm font-medium tracking-tight text-slate-900">
         {label}
+        <RequiredIndicator show={required} />
       </label>
 
       {kind === "textarea" ? (
@@ -279,23 +565,21 @@ function ConfiguredField({
           placeholder={placeholder}
           disabled={disabled}
           required={required}
+          onChange={onValueChange}
           className={`${fieldClassName} mt-2 resize-y`}
         />
       ) : kind === "select" ? (
-        <select
+        <FormDropdown
           id={name}
           name={name}
-          defaultValue={value}
+          value={selectValue ?? value}
+          onChange={(nextValue) => {
+            onSelectChange?.(nextValue);
+            onValueChange?.();
+          }}
+          options={options ?? []}
           disabled={disabled}
-          required={required}
-          className={`${fieldClassName} mt-2`}
-        >
-          {options?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        />
       ) : (
         <input
           id={name}
@@ -304,6 +588,7 @@ function ConfiguredField({
           placeholder={placeholder}
           disabled={disabled}
           required={required}
+          onChange={onValueChange}
           className={`${fieldClassName} mt-2`}
         />
       )}
@@ -393,6 +678,7 @@ function getCreateListingDraftValues(formData: FormData): CreateListingFormValue
   const rawProfessionalGrader = String(
     formData.get("professionalGrader") ?? "",
   ).trim();
+  const rawCity = String(formData.get("city") ?? "").trim();
 
   return {
     ...stringValues,
@@ -405,7 +691,7 @@ function getCreateListingDraftValues(formData: FormData): CreateListingFormValue
         ? rawProfessionalGrader
         : initialCreateListingValues.professionalGrader,
     dealMethods: rawDealMethods.filter(isListingDealMethod),
-    city: initialCreateListingValues.city,
+    city: isListingCity(rawCity) ? rawCity : initialCreateListingValues.city,
   };
 }
 
@@ -486,6 +772,7 @@ function applyDraftValuesToForm(
   assignFieldValue("listingType", values.listingType);
   assignFieldValue("conditionType", values.conditionType);
   assignFieldValue("professionalGrader", values.professionalGrader);
+  assignFieldValue("city", values.city);
 
   createListingDraftStringFieldNames.forEach((fieldName) => {
     assignFieldValue(fieldName, values[fieldName]);
@@ -530,12 +817,33 @@ export function CreateListingForm() {
   const [conditionType, setConditionType] = useState<ListingConditionTypeOption>(
     restoredDraftValues?.conditionType ?? state.values.conditionType,
   );
+  const [city, setCity] = useState<CreateListingCityOption>(
+    restoredDraftValues?.city ?? state.values.city,
+  );
+  const [cityQuery, setCityQuery] = useState(() =>
+    getListingCityOptionLabel(restoredDraftValues?.city ?? state.values.city),
+  );
   const [dealMethods, setDealMethods] = useState<ListingDealMethodOption[]>(
     restoredDraftValues?.dealMethods ?? state.values.dealMethods,
   );
+  const [configuredSelectValues, setConfiguredSelectValues] = useState<
+    Record<string, string>
+  >(() => getConfiguredSelectFieldValues(restoredDraftValues ?? state.values));
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
   const [isMediaDragging, setIsMediaDragging] = useState(false);
+  const [draggedCoverIndex, setDraggedCoverIndex] = useState<number | null>(null);
+  const [isCoverDropTargetActive, setIsCoverDropTargetActive] = useState(false);
+  const [isDetectingCity, setIsDetectingCity] = useState(false);
+  const [locationAssistState, setLocationAssistState] =
+    useState<LocationAssistState>(null);
   const [saveDraftLabel, setSaveDraftLabel] = useState("Save draft");
+  const [clearedFieldErrors, setClearedFieldErrors] = useState<{
+    key: string;
+    fieldNames: Set<keyof CreateListingFormValues>;
+  }>(() => ({
+    key: "",
+    fieldNames: new Set(),
+  }));
 
   const isSportsCategory = categoryFamily === "sports-cards";
   const listingTypeOptions = getListingTypeOptionsForCategory(categoryFamily);
@@ -553,13 +861,17 @@ export function CreateListingForm() {
   const isMeetupSelected = dealMethods.includes("meet-up");
   const isDeliverySelected = dealMethods.includes("mailing-delivery");
   const primaryMediaPreview = mediaPreviews[0];
-  const remainingMediaPreviews = mediaPreviews.slice(1, 7);
-  const hiddenMediaPreviewCount = Math.max(mediaPreviews.length - 7, 0);
+  const remainingMediaPreviews = mediaPreviews.slice(1, MAX_LISTING_MEDIA_FILES);
+  const hiddenMediaPreviewCount = Math.max(
+    mediaPreviews.length - MAX_LISTING_MEDIA_FILES,
+    0,
+  );
   const titlePlaceholder = isSportsCategory
     ? "2023 Prizm Victor Wembanyama silver rookie"
     : listingType === "ccg-individual-cards"
       ? "Charizard ex 199/165 illustration rare"
       : "One Piece OP-05 booster box";
+  const fieldErrorsKey = JSON.stringify(state.fieldErrors ?? {});
 
   useEffect(() => {
     mediaPreviewsRef.current = mediaPreviews;
@@ -617,11 +929,13 @@ export function CreateListingForm() {
   }
 
   function syncSelectedMedia(files: FileList | File[]) {
-    const nextPreviews: MediaPreview[] = Array.from(files).map((file) => ({
-      file,
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
+    const nextPreviews: MediaPreview[] = Array.from(files)
+      .slice(0, MAX_LISTING_MEDIA_FILES)
+      .map((file) => ({
+        file,
+        name: file.name,
+        url: URL.createObjectURL(file),
+      }));
 
     setMediaPreviews((currentPreviews) => {
       revokeMediaPreviews(currentPreviews);
@@ -643,9 +957,30 @@ export function CreateListingForm() {
     fileInputRef.current.files = transfer.files;
   }
 
+  function syncFileInputWithFiles(files: File[]) {
+    if (!fileInputRef.current) {
+      return;
+    }
+
+    const transfer = new DataTransfer();
+
+    files.forEach((file) => {
+      transfer.items.add(file);
+    });
+
+    fileInputRef.current.files = transfer.files;
+  }
+
   function handleMediaInputChange(event: React.ChangeEvent<HTMLInputElement>) {
     setIsMediaDragging(false);
-    syncSelectedMedia(event.target.files ?? []);
+    clearFieldError("mediaFiles");
+    const files = Array.from(event.target.files ?? []).slice(
+      0,
+      MAX_LISTING_MEDIA_FILES,
+    );
+
+    syncFileInputWithFiles(files);
+    syncSelectedMedia(files);
   }
 
   function handleMediaDrop(event: React.DragEvent<HTMLLabelElement>) {
@@ -658,11 +993,14 @@ export function CreateListingForm() {
 
     const transfer = new DataTransfer();
 
-    Array.from(event.dataTransfer.files).forEach((file) => {
-      transfer.items.add(file);
-    });
+    Array.from(event.dataTransfer.files)
+      .slice(0, MAX_LISTING_MEDIA_FILES)
+      .forEach((file) => {
+        transfer.items.add(file);
+      });
 
     fileInputRef.current.files = transfer.files;
+    clearFieldError("mediaFiles");
     syncSelectedMedia(transfer.files);
   }
 
@@ -690,6 +1028,34 @@ export function CreateListingForm() {
     syncFileInputWithPreviews(nextPreviews);
     URL.revokeObjectURL(previewToRemove.url);
     setMediaPreviews(nextPreviews);
+  }
+
+  function handleSetCoverMedia(index: number) {
+    const selectedPreview = mediaPreviews[index];
+
+    if (!selectedPreview || index === 0) {
+      return;
+    }
+
+    const nextPreviews = [
+      selectedPreview,
+      ...mediaPreviews.filter((_, previewIndex) => previewIndex !== index),
+    ];
+
+    syncFileInputWithPreviews(nextPreviews);
+    setMediaPreviews(nextPreviews);
+  }
+
+  function handleCoverDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsCoverDropTargetActive(false);
+
+    if (draggedCoverIndex === null) {
+      return;
+    }
+
+    handleSetCoverMedia(draggedCoverIndex);
+    setDraggedCoverIndex(null);
   }
 
   function handleCategoryChange(nextCategoryFamily: ListingCategoryOption) {
@@ -731,12 +1097,122 @@ export function CreateListingForm() {
     }
   }
 
+  function handleConfiguredSelectChange(fieldName: string, nextValue: string) {
+    setConfiguredSelectValues((currentValues) => ({
+      ...currentValues,
+      [fieldName]: nextValue,
+    }));
+  }
+
+  function clearFieldError(fieldName: keyof CreateListingFormValues) {
+    setClearedFieldErrors((currentFieldErrors) => {
+      const currentFieldNames =
+        currentFieldErrors.key === fieldErrorsKey
+          ? currentFieldErrors.fieldNames
+          : new Set<keyof CreateListingFormValues>();
+
+      if (currentFieldNames.has(fieldName)) {
+        return currentFieldErrors;
+      }
+
+      const nextFieldNames = new Set(currentFieldNames);
+      nextFieldNames.add(fieldName);
+
+      return {
+        key: fieldErrorsKey,
+        fieldNames: nextFieldNames,
+      };
+    });
+  }
+
+  function getFieldError(fieldName: keyof CreateListingFormValues) {
+    return clearedFieldErrors.key === fieldErrorsKey &&
+      clearedFieldErrors.fieldNames.has(fieldName)
+      ? undefined
+      : state.fieldErrors?.[fieldName];
+  }
+
+  function handleCityChange(nextCity: CreateListingCityOption) {
+    setCity(nextCity);
+    setCityQuery(getListingCityOptionLabel(nextCity));
+    setLocationAssistState(null);
+    clearFieldError("city");
+  }
+
+  function handleCityQueryChange(nextQuery: string) {
+    setCityQuery(nextQuery);
+    setLocationAssistState(null);
+
+    const matchedCity = getMatchingListingCityOption(nextQuery);
+
+    setCity(matchedCity?.value ?? "");
+    clearFieldError("city");
+  }
+
+  function handleUseCurrentCity() {
+    if (!("geolocation" in navigator)) {
+      setLocationAssistState({
+        tone: "error",
+        message: "Current city detection is unavailable in this browser.",
+      });
+      return;
+    }
+
+    setIsDetectingCity(true);
+    setLocationAssistState(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setIsDetectingCity(false);
+
+        const matchedCity = getSameCityFilter(
+          position.coords.latitude,
+          position.coords.longitude,
+        );
+
+        if (!matchedCity || matchedCity.slug === "all") {
+          setLocationAssistState({
+            tone: "error",
+            message:
+              "We couldn't match your current location to a supported U.S. city yet.",
+          });
+          return;
+        }
+
+        setCity(matchedCity.slug as ListingCityOption);
+        setCityQuery(matchedCity.label);
+        clearFieldError("city");
+        setLocationAssistState({
+          tone: "neutral",
+          message: `Using ${matchedCity.label}.`,
+        });
+      },
+      (error) => {
+        setIsDetectingCity(false);
+
+        setLocationAssistState({
+          tone: "error",
+          message:
+            error.code === error.PERMISSION_DENIED
+              ? "Location access was blocked. You can still choose a city manually."
+              : "We couldn't detect your current city. Please choose one manually.",
+        });
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+  }
+
   function handleDealMethodToggle(method: ListingDealMethodOption) {
     setDealMethods((currentMethods) =>
       currentMethods.includes(method)
         ? currentMethods.filter((currentMethod) => currentMethod !== method)
         : [...currentMethods, method],
     );
+    clearFieldError("dealMethods");
   }
 
   function handleSaveDraft() {
@@ -775,16 +1251,44 @@ export function CreateListingForm() {
     placeholder:
       "What is included, notable flaws, and anything a buyer should know.",
   };
+  const errorSummaryEntries = Object.entries(state.fieldErrors ?? {}).filter(
+    (entry): entry is [keyof CreateListingFormValues, string] =>
+      Boolean(entry[1]) &&
+      !(
+        clearedFieldErrors.key === fieldErrorsKey &&
+        clearedFieldErrors.fieldNames.has(
+          entry[0] as keyof CreateListingFormValues,
+        )
+      ),
+  );
 
   return (
     <form
       ref={formRef}
       action={formAction}
+      onSubmit={() =>
+        setClearedFieldErrors({
+          key: "",
+          fieldNames: new Set(),
+        })
+      }
       className="mx-auto max-w-6xl"
     >
       {state.message ? (
         <div className="mb-5 rounded-[18px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
-          {state.message}
+          <p className="font-medium">{state.message}</p>
+          {errorSummaryEntries.length > 0 ? (
+            <ul className="mt-3 space-y-1">
+              {errorSummaryEntries.map(([fieldName, message]) => (
+                <li key={fieldName}>
+                  <span className="font-medium">
+                    {getCreateListingFieldLabel(fieldName)}:
+                  </span>{" "}
+                  {message}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       ) : null}
 
@@ -865,6 +1369,10 @@ export function CreateListingForm() {
 
                   <p className="mt-4 text-base font-semibold tracking-tight text-slate-950">
                     Upload photos
+                    <RequiredIndicator show />
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Up to {MAX_LISTING_MEDIA_FILES} images
                   </p>
 
                   <span className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-emerald-700 px-4 text-sm font-medium text-emerald-50 shadow-[0_10px_24px_rgba(4,120,87,0.18)]">
@@ -875,14 +1383,38 @@ export function CreateListingForm() {
 
               {primaryMediaPreview ? (
                 <div className="mt-6">
-                  <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
-                    <p>First file is the cover</p>
+                  <div className="flex items-center justify-end gap-3 text-sm text-slate-500">
                     <span className="text-sm font-medium text-slate-500">
                       {mediaPreviews.length} selected
                     </span>
                   </div>
 
-                  <div className="mt-4 rounded-[18px] border border-slate-200 bg-white p-3">
+                  <div
+                    className={`mt-4 rounded-[18px] border bg-white p-3 transition ${
+                      isCoverDropTargetActive
+                        ? "border-emerald-300 shadow-[0_0_0_4px_rgba(220,252,231,0.85)]"
+                        : "border-slate-200"
+                    }`}
+                    onDragOver={(event) => {
+                      if (draggedCoverIndex !== null) {
+                        event.preventDefault();
+                        setIsCoverDropTargetActive(true);
+                      }
+                    }}
+                    onDragLeave={(event) => {
+                      const nextTarget = event.relatedTarget;
+
+                      if (
+                        nextTarget instanceof Node &&
+                        event.currentTarget.contains(nextTarget)
+                      ) {
+                        return;
+                      }
+
+                      setIsCoverDropTargetActive(false);
+                    }}
+                    onDrop={handleCoverDrop}
+                  >
                     <div className="flex items-center justify-between gap-3 px-1 pb-3">
                       <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Cover
@@ -945,6 +1477,11 @@ export function CreateListingForm() {
                           sizes="(min-width: 1280px) 400px, (min-width: 1024px) 360px, 100vw"
                           className="object-cover"
                         />
+                        {isCoverDropTargetActive ? (
+                          <div className="absolute inset-0 flex items-center justify-center bg-emerald-950/42 p-4 text-center text-sm font-semibold text-white">
+                            Drop to make cover
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 
@@ -961,8 +1498,71 @@ export function CreateListingForm() {
                       {remainingMediaPreviews.map((preview, index) => (
                         <div
                           key={preview.url}
-                          className="rounded-[16px] border border-slate-200 bg-white p-2"
+                          draggable
+                          onDragStart={(event) => {
+                            const mediaIndex = index + 1;
+
+                            setDraggedCoverIndex(mediaIndex);
+                            event.dataTransfer.effectAllowed = "move";
+                            event.dataTransfer.setData(
+                              "text/plain",
+                              String(mediaIndex),
+                            );
+                          }}
+                          onDragEnd={() => {
+                            setDraggedCoverIndex(null);
+                            setIsCoverDropTargetActive(false);
+                          }}
+                          className="relative cursor-grab rounded-[16px] border border-slate-200 bg-white p-2 transition active:cursor-grabbing"
                         >
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMedia(index + 1)}
+                            title="Remove image"
+                            className="absolute -right-1.5 -top-1.5 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-[0_8px_14px_rgba(15,23,42,0.12)] transition hover:border-slate-300 hover:bg-slate-50"
+                            aria-label={`Remove ${preview.name}`}
+                          >
+                            <svg
+                              aria-hidden="true"
+                              viewBox="0 0 24 24"
+                              className="h-3.5 w-3.5"
+                              fill="none"
+                            >
+                              <path
+                                d="M9.75 10.25V16.25"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                              />
+                              <path
+                                d="M14.25 10.25V16.25"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                              />
+                              <path
+                                d="M5.75 7.75H18.25"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                              />
+                              <path
+                                d="M8.75 7.75L9.5 5.75H14.5L15.25 7.75"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path
+                                d="M7.75 7.75V17.25C7.75 18.0784 8.42157 18.75 9.25 18.75H14.75C15.5784 18.75 16.25 18.0784 16.25 17.25V7.75"
+                                stroke="currentColor"
+                                strokeWidth="1.7"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+
                           <div className="relative overflow-hidden rounded-[12px] bg-slate-100">
                             <div className="relative aspect-square">
                               <Image
@@ -973,53 +1573,6 @@ export function CreateListingForm() {
                                 sizes="(min-width: 1280px) 120px, (min-width: 1024px) 110px, 33vw"
                                 className="object-cover"
                               />
-
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveMedia(index + 1)}
-                                className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white shadow-[0_10px_18px_rgba(15,23,42,0.22)] transition hover:bg-slate-800"
-                                aria-label={`Remove ${preview.name}`}
-                              >
-                                <svg
-                                  aria-hidden="true"
-                                  viewBox="0 0 24 24"
-                                  className="h-4 w-4"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M9.75 10.25V16.25"
-                                    stroke="currentColor"
-                                    strokeWidth="1.7"
-                                    strokeLinecap="round"
-                                  />
-                                  <path
-                                    d="M14.25 10.25V16.25"
-                                    stroke="currentColor"
-                                    strokeWidth="1.7"
-                                    strokeLinecap="round"
-                                  />
-                                  <path
-                                    d="M5.75 7.75H18.25"
-                                    stroke="currentColor"
-                                    strokeWidth="1.7"
-                                    strokeLinecap="round"
-                                  />
-                                  <path
-                                    d="M8.75 7.75L9.5 5.75H14.5L15.25 7.75"
-                                    stroke="currentColor"
-                                    strokeWidth="1.7"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <path
-                                    d="M7.75 7.75V17.25C7.75 18.0784 8.42157 18.75 9.25 18.75H14.75C15.5784 18.75 16.25 18.0784 16.25 17.25V7.75"
-                                    stroke="currentColor"
-                                    strokeWidth="1.7"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </button>
                             </div>
                           </div>
                         </div>
@@ -1035,7 +1588,7 @@ export function CreateListingForm() {
                 </div>
               ) : null}
 
-              <FieldError message={state.fieldErrors?.mediaFiles} />
+              <FieldError message={getFieldError("mediaFiles")} />
             </div>
           </div>
         </aside>
@@ -1050,14 +1603,18 @@ export function CreateListingForm() {
                     className="text-sm font-medium text-slate-900"
                   >
                     Category
+                    <RequiredIndicator show />
                   </label>
                   <FormDropdown
                     id="categoryFamily"
                     name="categoryFamily"
                     value={categoryFamily}
-                    onChange={(nextValue) =>
-                      handleCategoryChange(nextValue as ListingCategoryOption)
-                    }
+                    onChange={(nextValue) => {
+                      handleCategoryChange(nextValue as ListingCategoryOption);
+                      clearFieldError("categoryFamily");
+                      clearFieldError("listingType");
+                      clearFieldError("conditionType");
+                    }}
                     options={listingCategoryOptions}
                   />
                 </div>
@@ -1068,14 +1625,17 @@ export function CreateListingForm() {
                     className="text-sm font-medium text-slate-900"
                   >
                     Listing type
+                    <RequiredIndicator show />
                   </label>
                   <FormDropdown
                     id="listingType"
                     name="listingType"
                     value={listingType}
-                    onChange={(nextValue) =>
-                      handleListingTypeChange(nextValue as ListingTypeOption)
-                    }
+                    onChange={(nextValue) => {
+                      handleListingTypeChange(nextValue as ListingTypeOption);
+                      clearFieldError("listingType");
+                      clearFieldError("conditionType");
+                    }}
                     options={listingTypeOptions}
                   />
                 </div>
@@ -1086,6 +1646,7 @@ export function CreateListingForm() {
                     className="text-sm font-medium text-slate-900"
                   >
                     Title
+                    <RequiredIndicator show />
                   </label>
                   <input
                     id="title"
@@ -1093,9 +1654,10 @@ export function CreateListingForm() {
                     defaultValue={state.values.title}
                     placeholder={titlePlaceholder}
                     className={`${fieldClassName} mt-2`}
+                    onChange={() => clearFieldError("title")}
                     required
                   />
-                  <FieldError message={state.fieldErrors?.title} />
+                  <FieldError message={getFieldError("title")} />
                 </div>
               </div>
             </section>
@@ -1108,7 +1670,14 @@ export function CreateListingForm() {
                         <ConfiguredField
                           definition={listingSpecificFieldDefinitions[fieldName]}
                           value={state.values[fieldName]}
-                          error={state.fieldErrors?.[fieldName]}
+                          selectValue={
+                            configuredSelectValues[fieldName] ?? state.values[fieldName]
+                          }
+                          onSelectChange={(nextValue) =>
+                            handleConfiguredSelectChange(fieldName, nextValue)
+                          }
+                          onValueChange={() => clearFieldError(fieldName)}
+                          error={getFieldError(fieldName)}
                           required
                         />
                       </div>
@@ -1123,40 +1692,14 @@ export function CreateListingForm() {
                     }`}
                   >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 marker:hidden">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-semibold text-slate-950">
-                            Additional details
-                          </span>
-                          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                            {specificFieldConfig.optional.length} fields
-                          </span>
-                        </div>
-                        <p className="mt-1 text-sm leading-6 text-slate-500">
-                          Optional specifics for buyers who want more detail.
-                        </p>
-                      </div>
+                      <span className="text-sm font-semibold text-slate-950">
+                        Additional details
+                      </span>
 
-                      <div className="flex shrink-0 items-center gap-3">
+                      <div className="flex shrink-0 items-center">
                         <span className="text-sm font-medium text-slate-500">
                           <span className="group-open:hidden">Show</span>
                           <span className="hidden group-open:inline">Hide</span>
-                        </span>
-                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition group-open:border-slate-300 group-open:text-slate-700">
-                          <svg
-                            aria-hidden="true"
-                            viewBox="0 0 20 20"
-                            className="h-4 w-4 transition duration-200 group-open:rotate-180"
-                            fill="none"
-                          >
-                            <path
-                              d="M5.5 7.75L10 12.25L14.5 7.75"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
                         </span>
                       </div>
                     </summary>
@@ -1168,7 +1711,15 @@ export function CreateListingForm() {
                             key={fieldName}
                             definition={listingSpecificFieldDefinitions[fieldName]}
                             value={state.values[fieldName as ListingSpecificFieldName]}
-                            error={state.fieldErrors?.[fieldName]}
+                            selectValue={
+                              configuredSelectValues[fieldName] ??
+                              state.values[fieldName as ListingSpecificFieldName]
+                            }
+                            onSelectChange={(nextValue) =>
+                              handleConfiguredSelectChange(fieldName, nextValue)
+                            }
+                            onValueChange={() => clearFieldError(fieldName)}
+                            error={getFieldError(fieldName)}
                           />
                         ))}
                       </div>
@@ -1185,17 +1736,23 @@ export function CreateListingForm() {
                   className="text-sm font-medium text-slate-900"
                 >
                   Condition type
+                  <RequiredIndicator show />
                 </label>
                 <FormDropdown
                   id="conditionType"
                   name="conditionType"
                   value={conditionType}
-                  onChange={(nextValue) =>
-                    setConditionType(nextValue as ListingConditionTypeOption)
-                  }
+                  onChange={(nextValue) => {
+                    setConditionType(nextValue as ListingConditionTypeOption);
+                    clearFieldError("conditionType");
+                    clearFieldError("cardCondition");
+                    clearFieldError("professionalGrader");
+                    clearFieldError("grade");
+                    clearFieldError("certificationNumber");
+                  }}
                   options={conditionOptions}
                 />
-                <FieldError message={state.fieldErrors?.conditionType} />
+                <FieldError message={getFieldError("conditionType")} />
               </div>
 
               {showCardCondition ? (
@@ -1203,7 +1760,14 @@ export function CreateListingForm() {
                   <ConfiguredField
                     definition={cardConditionDefinition}
                     value={state.values.cardCondition}
-                    error={state.fieldErrors?.cardCondition}
+                    selectValue={
+                      configuredSelectValues.cardCondition ?? state.values.cardCondition
+                    }
+                    onSelectChange={(nextValue) =>
+                      handleConfiguredSelectChange("cardCondition", nextValue)
+                    }
+                    onValueChange={() => clearFieldError("cardCondition")}
+                    error={getFieldError("cardCondition")}
                     required={showCardCondition}
                     disabled={!showCardCondition}
                   />
@@ -1216,7 +1780,18 @@ export function CreateListingForm() {
                     <ConfiguredField
                       definition={listingSpecificFieldDefinitions.professionalGrader}
                       value={state.values.professionalGrader}
-                      error={state.fieldErrors?.professionalGrader}
+                      selectValue={
+                        configuredSelectValues.professionalGrader ??
+                        state.values.professionalGrader
+                      }
+                      onSelectChange={(nextValue) =>
+                        handleConfiguredSelectChange(
+                          "professionalGrader",
+                          nextValue,
+                        )
+                      }
+                      onValueChange={() => clearFieldError("professionalGrader")}
+                      error={getFieldError("professionalGrader")}
                       required={showGradingFields}
                       disabled={!showGradingFields}
                     />
@@ -1226,7 +1801,8 @@ export function CreateListingForm() {
                     <ConfiguredField
                       definition={listingSpecificFieldDefinitions.grade}
                       value={state.values.grade}
-                      error={state.fieldErrors?.grade}
+                      onValueChange={() => clearFieldError("grade")}
+                      error={getFieldError("grade")}
                       required={showGradingFields}
                       disabled={!showGradingFields}
                     />
@@ -1236,7 +1812,10 @@ export function CreateListingForm() {
                     <ConfiguredField
                       definition={listingSpecificFieldDefinitions.certificationNumber}
                       value={state.values.certificationNumber}
-                      error={state.fieldErrors?.certificationNumber}
+                      onValueChange={() =>
+                        clearFieldError("certificationNumber")
+                      }
+                      error={getFieldError("certificationNumber")}
                       required={showGradingFields}
                       disabled={!showGradingFields}
                     />
@@ -1249,29 +1828,81 @@ export function CreateListingForm() {
           <FormSection title="Price & delivery">
             <div className="grid gap-6">
               <div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <label
+                    htmlFor="city"
+                    className="text-sm font-medium text-slate-900"
+                  >
+                    Location
+                    <RequiredIndicator show />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentCity}
+                    disabled={isDetectingCity}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-3.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isDetectingCity ? "Detecting..." : "Use current city"}
+                  </button>
+                </div>
+                <FormCityAutocomplete
+                  id="city"
+                  name="city"
+                  value={city}
+                  query={cityQuery}
+                  onChange={handleCityChange}
+                  onQueryChange={handleCityQueryChange}
+                />
+                {locationAssistState ? (
+                  <p
+                    className={`mt-2 text-sm ${
+                      locationAssistState.tone === "error"
+                        ? "text-rose-600"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    {locationAssistState.message}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-500">
+                    Start typing a U.S. city and choose it from the suggestions.
+                  </p>
+                )}
+                <FieldError message={getFieldError("city")} />
+              </div>
+
+              <div>
                 <label
                   htmlFor="price"
                   className="text-sm font-medium text-slate-900"
-                >
-                  Price
-                </label>
-                <input
-                  id="price"
-                  name="price"
-                  type="number"
-                  min="1"
-                  step="1"
-                  defaultValue={state.values.price}
-                  placeholder="325"
-                  className={`${fieldClassName} mt-2`}
-                  required
-                />
-                <FieldError message={state.fieldErrors?.price} />
+                  >
+                    Price
+                    <RequiredIndicator show />
+                  </label>
+                <div className="relative mt-2">
+                  <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-sm font-semibold text-slate-400">
+                    $
+                  </span>
+                  <input
+                    id="price"
+                    name="price"
+                    type="number"
+                    min="1"
+                    step="1"
+                    defaultValue={state.values.price}
+                    placeholder="325"
+                    className={`${fieldClassName} pl-8`}
+                    onChange={() => clearFieldError("price")}
+                    required
+                  />
+                </div>
+                <FieldError message={getFieldError("price")} />
               </div>
 
               <div>
                 <span className="text-sm font-medium text-slate-900">
                   Deal methods
+                  <RequiredIndicator show />
                 </span>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
                   {listingDealMethodOptions.map((option) => (
@@ -1297,7 +1928,7 @@ export function CreateListingForm() {
                     </label>
                   ))}
                 </div>
-                <FieldError message={state.fieldErrors?.dealMethods} />
+                <FieldError message={getFieldError("dealMethods")} />
               </div>
 
               {isMeetupSelected || isDeliverySelected ? (
@@ -1309,6 +1940,7 @@ export function CreateListingForm() {
                         className="text-sm font-medium text-slate-900"
                       >
                         Meet-up location
+                        <RequiredIndicator show={isMeetupSelected} />
                       </label>
                       <input
                         id="meetupLocation"
@@ -1316,9 +1948,10 @@ export function CreateListingForm() {
                         defaultValue={state.values.meetupLocation}
                         placeholder="Shops at Skyview card tables"
                         required={isMeetupSelected}
+                        onChange={() => clearFieldError("meetupLocation")}
                         className={`${fieldClassName} mt-2`}
                       />
-                      <FieldError message={state.fieldErrors?.meetupLocation} />
+                      <FieldError message={getFieldError("meetupLocation")} />
                     </div>
                   ) : null}
 
@@ -1336,9 +1969,10 @@ export function CreateListingForm() {
                         rows={3}
                         defaultValue={state.values.deliveryDetails}
                         placeholder="Tracked shipping, signature confirmation, local delivery window"
+                        onChange={() => clearFieldError("deliveryDetails")}
                         className={`${fieldClassName} mt-2 resize-y`}
                       />
-                      <FieldError message={state.fieldErrors?.deliveryDetails} />
+                      <FieldError message={getFieldError("deliveryDetails")} />
                     </div>
                   ) : null}
                 </div>
@@ -1350,7 +1984,8 @@ export function CreateListingForm() {
             <ConfiguredField
               definition={descriptionDefinition}
               value={state.values.description}
-              error={state.fieldErrors?.description}
+              onValueChange={() => clearFieldError("description")}
+              error={getFieldError("description")}
               required
               rows={6}
             />

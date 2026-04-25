@@ -3,10 +3,50 @@ export type ListingCategory = "pokemon" | "sports" | "tcg" | "graded" | "lots";
 export type CityFilter =
   | "all"
   | "new-york"
+  | "jersey-city"
   | "chicago"
+  | "miami"
+  | "atlanta"
   | "austin"
+  | "dallas"
   | "los-angeles"
-  | "jersey-city";
+  | "seattle"
+  | "washington-dc"
+  | "boston"
+  | "philadelphia"
+  | "baltimore"
+  | "charlotte"
+  | "raleigh"
+  | "orlando"
+  | "tampa"
+  | "jacksonville"
+  | "nashville"
+  | "memphis"
+  | "new-orleans"
+  | "detroit"
+  | "cleveland"
+  | "columbus"
+  | "cincinnati"
+  | "indianapolis"
+  | "milwaukee"
+  | "minneapolis"
+  | "st-louis"
+  | "kansas-city"
+  | "omaha"
+  | "houston"
+  | "san-antonio"
+  | "el-paso"
+  | "denver"
+  | "phoenix"
+  | "las-vegas"
+  | "salt-lake-city"
+  | "albuquerque"
+  | "boise"
+  | "portland"
+  | "san-francisco"
+  | "san-jose"
+  | "sacramento"
+  | "san-diego";
 
 export type SortFilter = "fresh" | "price-low" | "price-high" | "trade-value";
 export type CityFilterOption = {
@@ -68,6 +108,7 @@ export type Listing = {
   specifics?: ListingDetailEntry[];
   conditionDetails?: ListingDetailEntry[];
   dealMethods?: string[];
+  ownerUserId?: string;
   seller: SellerProfile;
 };
 
@@ -108,6 +149,20 @@ export const cityFilters: CityFilterOption[] = [
     longitude: -87.6298,
   },
   {
+    slug: "miami",
+    label: "Miami, FL",
+    popular: true,
+    latitude: 25.7617,
+    longitude: -80.1918,
+  },
+  {
+    slug: "atlanta",
+    label: "Atlanta, GA",
+    popular: true,
+    latitude: 33.749,
+    longitude: -84.388,
+  },
+  {
     slug: "austin",
     label: "Austin, TX",
     popular: true,
@@ -115,11 +170,241 @@ export const cityFilters: CityFilterOption[] = [
     longitude: -97.7431,
   },
   {
+    slug: "dallas",
+    label: "Dallas, TX",
+    popular: true,
+    latitude: 32.7767,
+    longitude: -96.797,
+  },
+  {
     slug: "los-angeles",
     label: "Los Angeles, CA",
     popular: true,
     latitude: 34.0522,
     longitude: -118.2437,
+  },
+  {
+    slug: "seattle",
+    label: "Seattle, WA",
+    popular: true,
+    latitude: 47.6062,
+    longitude: -122.3321,
+  },
+  {
+    slug: "washington-dc",
+    label: "Washington, DC",
+    latitude: 38.9072,
+    longitude: -77.0369,
+  },
+  {
+    slug: "boston",
+    label: "Boston, MA",
+    latitude: 42.3601,
+    longitude: -71.0589,
+  },
+  {
+    slug: "philadelphia",
+    label: "Philadelphia, PA",
+    latitude: 39.9526,
+    longitude: -75.1652,
+  },
+  {
+    slug: "baltimore",
+    label: "Baltimore, MD",
+    latitude: 39.2904,
+    longitude: -76.6122,
+  },
+  {
+    slug: "charlotte",
+    label: "Charlotte, NC",
+    latitude: 35.2271,
+    longitude: -80.8431,
+  },
+  {
+    slug: "raleigh",
+    label: "Raleigh, NC",
+    latitude: 35.7796,
+    longitude: -78.6382,
+  },
+  {
+    slug: "orlando",
+    label: "Orlando, FL",
+    latitude: 28.5383,
+    longitude: -81.3792,
+  },
+  {
+    slug: "tampa",
+    label: "Tampa, FL",
+    latitude: 27.9506,
+    longitude: -82.4572,
+  },
+  {
+    slug: "jacksonville",
+    label: "Jacksonville, FL",
+    latitude: 30.3322,
+    longitude: -81.6557,
+  },
+  {
+    slug: "nashville",
+    label: "Nashville, TN",
+    latitude: 36.1627,
+    longitude: -86.7816,
+  },
+  {
+    slug: "memphis",
+    label: "Memphis, TN",
+    latitude: 35.1495,
+    longitude: -90.049,
+  },
+  {
+    slug: "new-orleans",
+    label: "New Orleans, LA",
+    latitude: 29.9511,
+    longitude: -90.0715,
+  },
+  {
+    slug: "detroit",
+    label: "Detroit, MI",
+    latitude: 42.3314,
+    longitude: -83.0458,
+  },
+  {
+    slug: "cleveland",
+    label: "Cleveland, OH",
+    latitude: 41.4993,
+    longitude: -81.6944,
+  },
+  {
+    slug: "columbus",
+    label: "Columbus, OH",
+    latitude: 39.9612,
+    longitude: -82.9988,
+  },
+  {
+    slug: "cincinnati",
+    label: "Cincinnati, OH",
+    latitude: 39.1031,
+    longitude: -84.512,
+  },
+  {
+    slug: "indianapolis",
+    label: "Indianapolis, IN",
+    latitude: 39.7684,
+    longitude: -86.1581,
+  },
+  {
+    slug: "milwaukee",
+    label: "Milwaukee, WI",
+    latitude: 43.0389,
+    longitude: -87.9065,
+  },
+  {
+    slug: "minneapolis",
+    label: "Minneapolis, MN",
+    latitude: 44.9778,
+    longitude: -93.265,
+  },
+  {
+    slug: "st-louis",
+    label: "St. Louis, MO",
+    latitude: 38.627,
+    longitude: -90.1994,
+  },
+  {
+    slug: "kansas-city",
+    label: "Kansas City, MO",
+    latitude: 39.0997,
+    longitude: -94.5786,
+  },
+  {
+    slug: "omaha",
+    label: "Omaha, NE",
+    latitude: 41.2565,
+    longitude: -95.9345,
+  },
+  {
+    slug: "houston",
+    label: "Houston, TX",
+    latitude: 29.7604,
+    longitude: -95.3698,
+  },
+  {
+    slug: "san-antonio",
+    label: "San Antonio, TX",
+    latitude: 29.4241,
+    longitude: -98.4936,
+  },
+  {
+    slug: "el-paso",
+    label: "El Paso, TX",
+    latitude: 31.7619,
+    longitude: -106.485,
+  },
+  {
+    slug: "denver",
+    label: "Denver, CO",
+    latitude: 39.7392,
+    longitude: -104.9903,
+  },
+  {
+    slug: "phoenix",
+    label: "Phoenix, AZ",
+    latitude: 33.4484,
+    longitude: -112.074,
+  },
+  {
+    slug: "las-vegas",
+    label: "Las Vegas, NV",
+    latitude: 36.1699,
+    longitude: -115.1398,
+  },
+  {
+    slug: "salt-lake-city",
+    label: "Salt Lake City, UT",
+    latitude: 40.7608,
+    longitude: -111.891,
+  },
+  {
+    slug: "albuquerque",
+    label: "Albuquerque, NM",
+    latitude: 35.0844,
+    longitude: -106.6504,
+  },
+  {
+    slug: "boise",
+    label: "Boise, ID",
+    latitude: 43.615,
+    longitude: -116.2023,
+  },
+  {
+    slug: "portland",
+    label: "Portland, OR",
+    latitude: 45.5152,
+    longitude: -122.6784,
+  },
+  {
+    slug: "san-francisco",
+    label: "San Francisco, CA",
+    latitude: 37.7749,
+    longitude: -122.4194,
+  },
+  {
+    slug: "san-jose",
+    label: "San Jose, CA",
+    latitude: 37.3382,
+    longitude: -121.8863,
+  },
+  {
+    slug: "sacramento",
+    label: "Sacramento, CA",
+    latitude: 38.5816,
+    longitude: -121.4944,
+  },
+  {
+    slug: "san-diego",
+    label: "San Diego, CA",
+    latitude: 32.7157,
+    longitude: -117.1611,
   },
 ];
 
